@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vincent Mwiti | Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #111418 60%, #111116);
+      color: #d1d5db;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    header {
+      background: rgba(22, 27, 34, 0.95);
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    header h1 {
+      color: #00bcd4;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+
+    nav a {
+      color: #e0e0e0;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #9c27b0;
+    }
+
+    /* Home Section */
+    .home {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      background: radial-gradient(circle at top, #273138, #282d33);
+    }
+
+    .home h2 {
+      font-size: 36px;
+      color: #00bcd4;
+      margin-bottom: 10px;
+    }
+
+    .home p {
+      font-size: 20px;
+      color: #b3b3b3;
+      max-width: 600px;
+    }
+
+    /* About Section */
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+      background: #b5b5c2;
+    }
+
+    .hero img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 4px solid #9c27b0;
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 0 20px rgba(156, 39, 176, 0.6);
+    }
+
+    .hero h2 {
+      font-size: 28px;
+      color: #00bcd4;
+    }
+
+    .hero p {
+      margin: 10px 0;
+      font-size: 16px;
+      color: #cfd8dc;
+      max-width: 600px;
+    }
+
+    /* Projects Section */
+    .projects {
+      background-color: #161b22;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .projects h3 {
+      color: #00bcd4;
+      margin-bottom: 30px;
+      font-size: 26px;
+    }
+
+    .project-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    .project {
+      background: linear-gradient(145deg, #cbccd1, #d5d6df);
+      width: 280px;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #cfd2e6;
+      transition: all 0.4s;
+      box-shadow: 0 5px 15px rgba(237, 241, 241, 0.932);
+    }
+
+    .project:hover {
+      transform: translateY(-10px);
+      border-color: #00bcd4;
+      box-shadow: 0 8px 25px rgba(17, 26, 27, 0.3);
+    }
+
+    .project img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .project h4 {
+      color: #9c27b0;
+      margin-bottom: 8px;
+    }
+
+    /* Skills Section */
+    .skills {
+      background: #0d1117;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .skills h3 {
+      color: #00bcd4;
+      margin-bottom: 25px;
+      font-size: 24px;
+    }
+
+    .skills-list {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .skill {
+      background: linear-gradient(145deg, #1e1f3d, #2a2f4a);
+      padding: 15px 30px;
+      border-radius: 10px;
+      color: #d1d5db;
+      transition: 0.3s;
+      border: 1px solid #2d2f40;
+      cursor: pointer;
+    }
+
+    .skill:hover {
+      background: #9c27b0;
+      color: #fff;
+      transform: scale(1.08);
+    }
+
+    /* Contact Section */
+    .contact {
+      padding: 60px 20px;
+      text-align: center;
+      background: #1a1b2e;
+    }
+
+    .contact h3 {
+      color: #00bcd4;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+
+    .contact p {
+      font-size: 18px;
+      margin: 10px 0;
+      color: #cfd8dc;
+    }
+
+    footer {
+      background-color: #12131f;
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #9ea7ad;
+      margin-top: 40px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+      }
+      nav a {
+        margin: 10px 8px;
+      }
+      .hero img {
+        width: 160px;
+        height: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Vincent Mwiti</h1>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Home Section -->
+  <section class="home" id="home">
+    <h2>I am Vincent Mwiti</h2>
+    <p>Web Developer | Designer | Tech Enthusiast</p>
+  </section>
+
+  <!-- About Section -->
+  <section class="hero" id="about">
+    <img src="images/tec.jpeg" alt="Vincent Mwiti">
+    <div>
+      <h2>About Me 👋</h2>
+      <p>Hello! I’m <strong>Vincent Mwiti</strong>, a passionate beginner developer with skills in <strong>JavaScript</strong>, <strong>C++</strong>, and some <strong>PHP</strong>. I enjoy creating visually appealing, user-friendly web experiences and learning new tech every day.</p>
+    </div>
+  </section>
+
+  <!-- Projects Section -->
+  <section class="projects" id="projects">
+    <h3>My Projects</h3>
+    <div class="project-list">
+      <div class="project">
+        <img src="images/bb.jpeg" alt="Project 1">
+        <h4>Portfolio Website</h4>
+        <p>A sleek and colorful personal portfolio showcasing my skills and designs.</p>
+      </div>
+      <div class="project">
+        <img src="images/vin.jpeg" alt="Project 2">
+        <h4>Uber Booking UI</h4>
+        <p>A prototype frontend for an Uber booking system using HTML, CSS, and JS.</p>
+      </div>
+      <div class="project">
+        <img src="images/kl.jpeg" alt="Project 3">
+        <h4>Basic Calculator</h4>
+        <p>A simple calculator app built with JavaScript and jQuery animations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section class="skills" id="skills">
+    <h3>My Skills</h3>
+    <div class="skills-list">
+      <div class="skill">JavaScript</div>
+      <div class="skill">C++</div>
+      <div class="skill">PHP (Basic)</div>
+      <div class="skill">HTML & CSS</div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact" id="contact">
+    <h3>Contact Me</h3>
+    <p>📞 Phone: <strong>0742446751</strong></p>
+    <p>📧 Email: <strong>vincentmwitik@gmail.com</strong></p>
+  </section>
+
+  <footer>
+    © 2025 Vincent Mwiti | All Rights Reserved
+  </footer>
+
+  <script>
+    $(document).ready(function(){
+      // Smooth scroll
+      $('nav a').click(function(e){
+        e.preventDefault();
+        $('html, body').animate({
+          scrollTop: $($(this).attr('href')).offset().top
+        }, 700);
+      });
+
+      // Skill hover bounce
+      $('.skill').hover(function(){
+        $(this).animate({padding: '20px 35px'}, 200);
+      }, function(){
+        $(this).animate({padding: '15px 30px'}, 200);
+      });
+    });
+  </script>
+</body>
+</html>
