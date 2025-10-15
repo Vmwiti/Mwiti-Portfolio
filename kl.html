@@ -1,0 +1,318 @@
+<!--
+Save this file as `index.html` inside your XAMPP `htdocs/uber-frontend/` folder.
+Put any additional assets (images) in an `assets/` folder next to this file.
+Open http://localhost/uber-frontend/index.html to view.
+
+Theme chosen by default (based on your 'custom' request):
+  Main: Dark navy    -- #0A0A23
+  Accent: Vibrant gold -- #F5C518
+Images: combination of real photos (Unsplash) and inline SVG illustrations.
+This is a single-file, frontend-only demo (HTML/CSS/JS). Replace placeholder images
+and connect backend routes (PHP/MySQL) later as needed.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Uber Booking - Frontend Demo</title>
+
+  <!-- Tailwind-like utility not used; simple CSS for portability -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --main: #0A0A23; /* dark navy */
+      --accent: #F5C518; /* gold */
+      --muted: #6b7280;
+      --card: #0f1724;
+      --glass: rgba(255,255,255,0.03);
+      --radius: 12px;
+      --maxw: 1200px;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; margin:0;background:linear-gradient(180deg,var(--main) 0%, #07102b 100%);color:#e6eef8;}
+    .container{max-width:var(--maxw);margin:28px auto;padding:20px}
+
+    /* Topbar */
+    header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ffea9a);display:flex;align-items:center;justify-content:center;color:var(--main);font-weight:700}
+    .logo h1{font-size:18px;margin:0}
+
+    /* Layout */
+    .layout{display:grid;grid-template-columns:260px 1fr;gap:20px}
+    nav{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:var(--radius);padding:18px}
+    nav ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    nav a{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;color:inherit;text-decoration:none}
+    nav a:hover{background:var(--glass)}
+    nav a.active{background:linear-gradient(90deg, rgba(245,197,24,0.12), rgba(245,197,24,0.06));box-shadow:0 4px 10px rgba(0,0,0,0.25)}
+    .icon{width:28px;height:28px;border-radius:8px;display:inline-grid;place-items:center;background:rgba(255,255,255,0.03)}
+
+    /* Main content */
+    main{padding:18px;border-radius:var(--radius);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));min-height:70vh}
+
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .stat{display:flex;justify-content:space-between;align-items:center}
+    .stat h3{margin:0;font-size:14px;color:var(--muted)}
+    .stat .value{font-size:20px;font-weight:700}
+
+    /* Table */
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    th{color:var(--muted);font-weight:600;font-size:13px}
+
+    /* Cards with images */
+    .vehicle-card{display:flex;gap:12px;align-items:center}
+    .vehicle-card img{width:84px;height:60px;border-radius:8px;object-fit:cover}
+
+    /* Forms */
+    .form-row{display:flex;gap:12px}
+    input,select,textarea{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    button{background:var(--accent);color:var(--main);border:none;padding:10px 14px;border-radius:8px;font-weight:600;cursor:pointer}
+
+    /* Responsive */
+    @media (max-width:900px){.layout{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
+
+    /* small helper */
+    .muted{color:var(--muted);font-size:13px}
+    .avatar{width:36px;height:36px;border-radius:10px;object-fit:cover}
+
+    /* Hero */
+    .hero{display:flex;justify-content:space-between;align-items:center;gap:20px}
+    .hero-left{max-width:60%}
+    .hero-right img{width:220px;border-radius:12px;box-shadow:0 8px 30px rgba(10,10,35,0.6)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="mark">UB</div>
+        <div>
+          <h1>Uber Booking System</h1>
+          <div class="muted">Demo frontend — custom theme (navy + gold) • Images & illustrations</div>
+        </div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
+        <input id="search" placeholder="Search bookings, users..." style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop&s=placeholder" alt="avatar" class="avatar">
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav>
+        <ul>
+          <li><a href="#" class="active" data-view="dashboard"><span class="icon">🏠</span> Dashboard</a></li>
+          <li><a href="#" data-view="users"><span class="icon">👥</span> Users</a></li>
+          <li><a href="#" data-view="drivers"><span class="icon">🚗</span> Drivers</a></li>
+          <li><a href="#" data-view="bookings"><span class="icon">📥</span> Bookings</a></li>
+          <li><a href="#" data-view="payments"><span class="icon">💳</span> Payments</a></li>
+          <li><a href="#" data-view="vehicles"><span class="icon">🔧</span> Vehicles</a></li>
+          <li style="margin-top:12px"><a href="#" data-view="settings"><span class="icon">⚙️</span> Settings</a></li>
+        </ul>
+      </nav>
+
+      <main>
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="view">
+          <div class="hero card" style="margin-bottom:18px">
+            <div class="hero-left">
+              <h2 style="margin:0">Welcome back, Admin 👋</h2>
+              <p class="muted">Quick overview of today's activity and recent trips.</p>
+
+              <div style="display:flex;gap:12px;margin-top:12px">
+                <div class="card" style="padding:12px;min-width:150px">
+                  <div class="stat"><h3>Total Rides</h3><div class="value">1,248</div></div>
+                  <div class="muted">+2.7% from yesterday</div>
+                </div>
+                <div class="card" style="padding:12px;min-width:150px">
+                  <div class="stat"><h3>Active Drivers</h3><div class="value">342</div></div>
+                  <div class="muted">Cities: 12</div>
+                </div>
+                <div class="card" style="padding:12px;min-width:150px">
+                  <div class="stat"><h3>Revenue</h3><div class="value">$18,640</div></div>
+                  <div class="muted">Today</div>
+                </div>
+              </div>
+            </div>
+            <div class="hero-right">
+              <!-- real photo for visual appeal -->
+              <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop&s=placeholder" alt="taxi"/>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="card">
+              <h3 style="margin-top:0">Recent Bookings</h3>
+              <table>
+                <thead><tr><th>Booking</th><th>User</th><th>Driver</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>#B1029</td><td>Maria</td><td>John</td><td>Completed</td></tr>
+                  <tr><td>#B1030</td><td>Peter</td><td>Sam</td><td>Ongoing</td></tr>
+                  <tr><td>#B1031</td><td>Lina</td><td>Kofi</td><td>Cancelled</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h3 style="margin-top:0">Top Drivers</h3>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:12px"><img class="avatar" src="https://images.unsplash.com/photo-1545996124-1a5d4b6f0d6a?q=80&w=200&auto=format&fit=crop&s=placeholder"><div><strong>John Doe</strong><div class="muted">Rating 4.9 — 1,200 rides</div></div></div>
+                <div style="display:flex;align-items:center;gap:12px"><img class="avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop&s=placeholder"><div><strong>Sam K</strong><div class="muted">Rating 4.8 — 980 rides</div></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-top:0">Revenue (last 7 days)</h3>
+              <div id="chart-placeholder" style="height:140px;display:flex;align-items:center;justify-content:center;color:var(--muted)">[Chart placeholder — Chart.js recommended]</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">Active Vehicles</h3>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
+              <!-- vehicle cards using real photos -->
+              <div class="card vehicle-card" style="min-width:280px"><img src="https://images.unsplash.com/photo-1542367597-e6c8a7b8a2d6?q=80&w=640&auto=format&fit=crop&s=placeholder" alt="car"><div><strong>Toyota Prius</strong><div class="muted">Plate: KAA 123A — Driver: John</div></div></div>
+              <div class="card vehicle-card" style="min-width:280px"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=640&auto=format&fit=crop&s=placeholder" alt="car"><div><strong>Honda Civic</strong><div class="muted">Plate: KBB 789C — Driver: Sam</div></div></div>
+              <div class="card vehicle-card" style="min-width:280px"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=640&auto=format&fit=crop&s=placeholder" alt="car"><div><strong>Mercedes E</strong><div class="muted">Plate: KCC 456D — Driver: Lina</div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- USERS -->
+        <section id="view-users" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Users</h3>
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Rating</th></tr></thead>
+              <tbody>
+                <tr><td>U001</td><td>Maria</td><td>maria@example.com</td><td>+254700111222</td><td>4.6</td></tr>
+                <tr><td>U002</td><td>Peter</td><td>peter@example.com</td><td>+254700333444</td><td>4.4</td></tr>
+                <tr><td>U003</td><td>Lina</td><td>lina@example.com</td><td>+254700555666</td><td>4.7</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- DRIVERS -->
+        <section id="view-drivers" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Drivers</h3>
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>License</th><th>Phone</th><th>Vehicle</th></tr></thead>
+              <tbody>
+                <tr><td>D100</td><td>John</td><td>LN-3492</td><td>+254701111222</td><td>Toyota Prius</td></tr>
+                <tr><td>D101</td><td>Sam</td><td>LN-2288</td><td>+254701333444</td><td>Honda Civic</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- BOOKINGS -->
+        <section id="view-bookings" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Bookings</h3>
+            <table>
+              <thead><tr><th>Ref</th><th>User</th><th>From</th><th>To</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>#B1029</td><td>Maria</td><td>Westlands</td><td>CBD</td><td>Completed</td></tr>
+                <tr><td>#B1030</td><td>Peter</td><td>Kilimani</td><td>Airport</td><td>Ongoing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- PAYMENTS -->
+        <section id="view-payments" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Payments</h3>
+            <table>
+              <thead><tr><th>Txn</th><th>User</th><th>Method</th><th>Amount</th><th>Date</th></tr></thead>
+              <tbody>
+                <tr><td>T20205</td><td>Maria</td><td>Card</td><td>$12.40</td><td>2025-10-10</td></tr>
+                <tr><td>T20206</td><td>Peter</td><td>Cash</td><td>$8.00</td><td>2025-10-11</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- VEHICLES -->
+        <section id="view-vehicles" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Vehicles</h3>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="vehicle-card card">
+                <img src="https://images.unsplash.com/photo-1542367597-e6c8a7b8a2d6?q=80&w=640&auto=format&fit=crop&s=placeholder" alt="vehicle">
+                <div>
+                  <strong>Toyota Prius</strong>
+                  <div class="muted">KAA 123A • Driver: John • 2018</div>
+                </div>
+              </div>
+
+              <div class="vehicle-card card">
+                <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=640&auto=format&fit=crop&s=placeholder" alt="vehicle">
+                <div>
+                  <strong>Honda Civic</strong>
+                  <div class="muted">KBB 789C • Driver: Sam • 2019</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="view-settings" class="view" style="display:none">
+          <div class="card">
+            <h3 style="margin-top:0">Theme & Branding</h3>
+            <p class="muted">This demo uses a custom theme (navy + gold). To change colors, edit the CSS variables near the top of the file.</p>
+            <div style="margin-top:12px">
+              <label class="muted">Site Title</label>
+              <input id="site-title-input" value="Uber Booking System">
+              <div style="height:8px"></div>
+              <label class="muted">Logo (text)</label>
+              <input id="logo-text-input" value="UB">
+              <div style="height:12px"></div>
+              <button id="apply-brand">Apply</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Simple client-side view router
+    document.querySelectorAll('nav a').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        document.querySelectorAll('nav a').forEach(x=>x.classList.remove('active'));
+        a.classList.add('active');
+        const view = a.dataset.view;
+        document.querySelectorAll('.view').forEach(s=>s.style.display='none');
+        document.getElementById('view-'+view).style.display='block';
+      })
+    })
+
+    // Apply branding quick demo
+    document.getElementById('apply-brand').addEventListener('click', ()=>{
+      const site = document.getElementById('site-title-input').value || 'Uber Booking System';
+      const mark = document.getElementById('logo-text-input').value || 'UB';
+      document.querySelector('.logo h1').textContent = site;
+      document.querySelector('.logo .mark').textContent = mark;
+    })
+
+    // Small search filter for tables (quick UX)
+    document.getElementById('search').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('table tbody tr').forEach(tr=>{
+        const txt = tr.textContent.toLowerCase();
+        tr.style.display = txt.includes(q) ? '' : 'none';
+      })
+    })
+  </script>
+</body>
+</html>

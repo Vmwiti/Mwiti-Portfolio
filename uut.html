@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ride Booking Wireframe SPA</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<style>:root{
+  --bg:#f7f7f7;
+  --panel:#fff;
+  --muted:#9b9b9b;
+  --accent:#2e2e2e;
+  --primary:#333;
+  --danger:#b33030;
+  --radius:14px;
+  --gap:14px;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--accent)}
+.container{max-width:1100px;margin:28px auto;padding:16px;display:grid;gap:20px;grid-template-columns:1fr;}
+
+/* Card common */
+.card{
+  background:var(--panel);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:0 6px 20px rgba(12,12,12,0.06);
+  border:3px solid rgba(0,0,0,0.06);
+}
+
+/* Center small login card */
+.centered{max-width:420px;margin:20px auto;padding:28px;text-align:center}
+.title{margin:6px 0 20px 0;font-size:20px;letter-spacing:0.3px}
+.form{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+
+/* Inputs */
+.input-group{display:flex;flex-direction:column;align-items:stretch;text-align:left}
+.label{font-size:13px;color:var(--muted);margin-bottom:6px}
+input,textarea{padding:12px 14px;border-radius:10px;border:2px solid rgba(0,0,0,0.08);font-size:15px;outline:none}
+input:focus,textarea:focus{box-shadow:0 4px 14px rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12)}
+
+.btn{padding:12px 16px;border-radius:12px;border:0;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.outline{background:transparent;border:2px solid rgba(0,0,0,0.08)}
+.btn.wide{width:100%}
+.btn.small{padding:8px 10px;font-size:14px}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:active{transform:translateY(1px)}
+
+/* Panels layout */
+.layout{display:flex;gap:16px;margin-top:12px}
+.side-nav{width:64px;background:#eee;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.nav-item{background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer;font-size:18px}
+.nav-item.active{background:#ccc}
+.content{flex:1;padding:6px}
+.panel-list{display:flex;flex-direction:column;gap:12px}
+.panel-btn{padding:12px;border-radius:12px;border:2px solid rgba(0,0,0,0.08);background:#fff;cursor:pointer}
+
+/* driver card */
+.driver-card{display:flex;gap:12px;align-items:center;border:2px solid rgba(0,0,0,0.06);padding:12px;border-radius:10px;margin:10px 0}
+.car-emoji{font-size:34px;background:rgba(0,0,0,0.04);padding:8px;border-radius:10px}
+.driver-name{font-weight:700}
+.driver-details{font-size:13px;color:var(--muted)}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:10px}
+.list .ride{border:1px solid rgba(0,0,0,0.06);padding:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+.reports-table{width:100%;border-collapse:collapse;margin-top:8px}
+.reports-table th, .reports-table td{padding:10px;border:1px solid rgba(0,0,0,0.06);text-align:left;font-size:14px}
+.or{text-align:center;color:var(--muted);margin-top:12px}
+
+/* ride details */
+.ride-detail-card{display:flex;gap:12px;align-items:center;padding:14px;border-radius:12px;border:1px solid rgba(0,0,0,0.06)}
+.avatar{font-size:40px;background:rgba(0,0,0,0.04);padding:12px;border-radius:10px}
+.detail-info{font-size:14px}
+
+/* admin */
+.admin-actions{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.admin-btn{padding:12px 16px;border-radius:12px;border:2px solid rgba(0,0,0,0.06);cursor:pointer}
+
+/* footer row */
+.footer-row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+/* utility */
+.hidden{display:none}
+.small-btn{padding:8px 12px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:#fff}
+
+/* responsive */
+@media (max-width:800px){
+  .layout{flex-direction:column}
+  .side-nav{width:100%;flex-direction:row;justify-content:space-around;padding:6px}
+  .centered{margin:10px}
+}
+</style>
+<body>
+  <main class="container">
+
+    <!-- LOGIN SCREEN -->
+    <section id="screen-login" class="card centered">
+      <h2 class="title">Login</h2>
+      <form id="login-form" class="form">
+        <label class="input-group">
+          <span class="label">Username</span>
+          <input id="username" required placeholder="Enter username" />
+        </label>
+        <label class="input-group">
+          <span class="label">Password</span>
+          <input id="password" type="password" required placeholder="Enter password" />
+        </label>
+        <button type="submit" class="btn primary">LOGIN</button>
+        <button type="button" id="signupBtn" class="btn outline">SIGN UP</button>
+      </form>
+    </section>
+
+    <!-- RIDER DASHBOARD -->
+    <section id="screen-rider" class="card hidden">
+      <header class="header-row">
+        <h2>RIDER DASHBOARD</h2>
+        <div class="user-info">Hi, <span id="loggedName">Rider</span></div>
+      </header>
+
+      <div class="layout">
+        <nav class="side-nav">
+          <button data-nav="home" class="nav-item active">🏠</button>
+          <button data-nav="book" class="nav-item">🚗</button>
+          <button data-nav="payments" class="nav-item">💳</button>
+          <button data-nav="feedback" class="nav-item">💬</button>
+        </nav>
+
+        <div class="content">
+          <div class="panel-list">
+            <button class="panel-btn" data-switch="book">BOOK RIDE</button>
+            <button class="panel-btn" data-switch="myrides">MY RIDES</button>
+            <button class="panel-btn" data-switch="payments">PAYMENTS</button>
+            <button class="panel-btn" data-switch="feedback">FEEDBACK</button>
+          </div>
+
+          <!-- Book Ride Panel -->
+          <div id="panel-book" class="panel hidden">
+            <h3>BOOK RIDE</h3>
+            <form id="book-form" class="form">
+              <label class="input-group">
+                <span class="label">Pickup location</span>
+                <input id="pickup" placeholder="Where to pick up?" required />
+              </label>
+              <label class="input-group">
+                <span class="label">Destination</span>
+                <input id="destination" placeholder="Where to go?" required />
+              </label>
+
+              <div class="driver-card">
+                <div class="car-emoji">🚘</div>
+                <div>
+                  <div class="driver-name" id="assignedName">Sam Drive</div>
+                  <div class="driver-details" id="assignedNumber">Number: P2CE</div>
+                  <div class="driver-details" id="assignedLabel">Driver</div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn primary wide">CONFIRM BOOKING</button>
+            </form>
+          </div>
+
+          <!-- My Rides Panel -->
+          <div id="panel-myrides" class="panel hidden">
+            <h3>MY RIDES</h3>
+            <div id="rides-list" class="list"></div>
+          </div>
+
+          <!-- Payments Panel -->
+          <div id="panel-payments" class="panel hidden">
+            <h3>PAYMENT & REPORTS</h3>
+            <table class="reports-table" id="payments-table" aria-label="payments table">
+              <thead>
+                <tr><th>DATE</th><th>TIME</th><th>FARE</th><th>STATUS</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="or">OR</div>
+            <div class="payment-options">
+              <button class="small-btn">Card</button>
+              <button class="small-btn">Mobile</button>
+            </div>
+          </div>
+
+          <!-- Feedback Panel -->
+          <div id="panel-feedback" class="panel hidden">
+            <h3>FEEDBACK</h3>
+            <textarea id="feedbackText" placeholder="Write feedback..." rows="5"></textarea>
+            <button id="sendFeedback" class="btn outline">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-row">
+        <button id="toAdminBtn" class="btn">Go to Admin</button>
+        <button id="logoutBtn" class="btn outline">Logout</button>
+      </div>
+    </section>
+
+    <!-- RIDE DETAILS (modal-like) -->
+    <section id="screen-ride-details" class="card hidden">
+      <h2>RIDE DETAILS</h2>
+      <div class="ride-detail-card">
+        <div class="avatar">👤</div>
+        <div class="detail-info">
+          <div><strong id="rd-driver">Driver</strong></div>
+          <div id="rd-rating">★★★★★</div>
+          <div class="model">Model: <span id="rd-model">Toyota</span></div>
+          <div class="trip-time">Trip Time: <span id="rd-time">15 mins</span></div>
+        </div>
+      </div>
+      <button id="cancelRideBtn" class="btn danger">CANCEL RIDE</button>
+      <button id="backToRider" class="btn outline">Back</button>
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
+    <section id="screen-admin" class="card hidden">
+      <h2>ADMIN DASHBOARD</h2>
+      <div class="admin-actions">
+        <button data-admin="drivers" class="admin-btn">MANAGE DRIVERS</button>
+        <button data-admin="riders" class="admin-btn">MANAGE RIDERS</button>
+        <button data-admin="rides" class="admin-btn">MANAGE RIDES</button>
+      </div>
+
+      <div id="admin-area" class="admin-area">
+        <p>Select an action above to manage.</p>
+      </div>
+
+      <div class="footer-row">
+        <button id="adminBack" class="btn outline">Back to Rider</button>
+        <button id="adminLogout" class="btn outline">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <script>// Simple SPA logic with mock state and persistence to localStorage
+(() => {
+  // Elements
+  const screens = {
+    login: document.getElementById('screen-login'),
+    rider: document.getElementById('screen-rider'),
+    rideDetails: document.getElementById('screen-ride-details'),
+    admin: document.getElementById('screen-admin'),
+  };
+
+  const loginForm = document.getElementById('login-form');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const loggedName = document.getElementById('loggedName');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const signupBtn = document.getElementById('signupBtn');
+
+  const panelButtons = document.querySelectorAll('.panel-btn');
+  const navBtns = document.querySelectorAll('.nav-item');
+  const panels = {
+    book: document.getElementById('panel-book'),
+    myrides: document.getElementById('panel-myrides'),
+    payments: document.getElementById('panel-payments'),
+    feedback: document.getElementById('panel-feedback'),
+  };
+
+  const bookForm = document.getElementById('book-form');
+  const ridesListEl = document.getElementById('rides-list');
+  const paymentsTbody = document.querySelector('#payments-table tbody');
+  const feedbackText = document.getElementById('feedbackText');
+  const sendFeedback = document.getElementById('sendFeedback');
+
+  const rideDetailsScreen = document.getElementById('screen-ride-details');
+  const rdDriver = document.getElementById('rd-driver');
+  const rdRating = document.getElementById('rd-rating');
+  const rdModel = document.getElementById('rd-model');
+  const rdTime = document.getElementById('rd-time');
+  const cancelRideBtn = document.getElementById('cancelRideBtn');
+  const backToRider = document.getElementById('backToRider');
+
+  const toAdminBtn = document.getElementById('toAdminBtn');
+  const adminScreen = document.getElementById('screen-admin');
+  const adminArea = document.getElementById('admin-area');
+  const adminBack = document.getElementById('adminBack');
+  const adminLogout = document.getElementById('adminLogout');
+
+  // Mock data (persisted)
+  let state = {
+    user: null,
+    rides: JSON.parse(localStorage.getItem('rides') || '[]'),
+    drivers: JSON.parse(localStorage.getItem('drivers') || '[]') || [
+      { id:1, name:'Sam Drive', number:'P2CE', rating:4.7, model:'Toyota Corolla'},
+      { id:2, name:'Alex Wheel', number:'A1BC', rating:4.9, model:'Honda Civic'},
+    ]
+  };
+
+  function saveState(){
+    localStorage.setItem('rides', JSON.stringify(state.rides));
+  }
+
+  // UI helpers
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.add('hidden'));
+    if(name === 'login') screens.login.classList.remove('hidden');
+    if(name === 'rider') screens.rider.classList.remove('hidden');
+    if(name === 'rideDetails') screens.rideDetails.classList.remove('hidden');
+    if(name === 'admin') screens.admin.classList.remove('hidden');
+  }
+
+  function switchPanel(key){
+    Object.values(panels).forEach(p => p.classList.add('hidden'));
+    const panel = panels[key] || panels.book;
+    panel.classList.remove('hidden');
+    // highlight corresponding panel button
+    panelButtons.forEach(b => b.classList.toggle('active', b.dataset.switch === key));
+  }
+
+  // Render rides list
+  function renderRides(){
+    ridesListEl.innerHTML = '';
+    if(state.rides.length === 0){
+      ridesListEl.innerHTML = '<p class="muted">No rides yet — book one!</p>';
+      paymentsTbody.innerHTML = '';
+      return;
+    }
+    state.rides.slice().reverse().forEach((ride, idx) => {
+      const item = document.createElement('div');
+      item.className = 'ride';
+      item.innerHTML = `
+        <div>
+          <div><strong>${ride.pickup} → ${ride.destination}</strong></div>
+          <div class="driver-details">${ride.driver.name} • ${ride.time} • ${ride.status}</div>
+        </div>
+        <div>
+          <button class="small-btn" data-idx="${idx}" data-action="view">View</button>
+        </div>
+      `;
+      ridesListEl.appendChild(item);
+    });
+
+    // Payment table
+    paymentsTbody.innerHTML = '';
+    state.rides.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.date}</td><td>${r.time}</td><td>$${r.fare.toFixed(2)}</td><td>${r.status}</td>`;
+      paymentsTbody.appendChild(tr);
+    });
+  }
+
+  // Event bindings
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const uname = usernameInput.value.trim();
+    if(!uname) return alert('Enter username');
+    // mock login, "admin" user goes to admin dashboard
+    state.user = { name: uname, role: (uname.toLowerCase() === 'admin' ? 'admin' : 'rider') };
+    loggedName.textContent = state.user.name;
+    usernameInput.value = '';
+    passwordInput.value = '';
+    if(state.user.role === 'admin'){
+      showScreen('admin');
+    }else{
+      showScreen('rider');
+    }
+    switchPanel('book');
+    renderRides();
+  });
+
+  signupBtn.addEventListener('click', () => {
+    alert('Sign up is mock — enter any username to continue.');
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    state.user = null;
+    showScreen('login');
+  });
+
+  // nav and panels
+  panelButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.switch;
+      switchPanel(target);
+    });
+  });
+
+  navBtns.forEach(nb => nb.addEventListener('click', () => {
+    navBtns.forEach(n => n.classList.remove('active'));
+    nb.classList.add('active');
+    // map icons to panels roughly
+    const mapping = { home: 'book', book:'book', payments:'payments', feedback:'feedback' };
+    switchPanel(mapping[nb.dataset.nav] || 'book');
+  }));
+
+  bookForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const pickup = document.getElementById('pickup').value.trim();
+    const destination = document.getElementById('destination').value.trim();
+    if(!pickup || !destination) return alert('please fill pickup and destination');
+    // assign a random driver
+    const driver = state.drivers[Math.floor(Math.random()*state.drivers.length)];
+    const now = new Date();
+    const newRide = {
+      id: Date.now(),
+      pickup,
+      destination,
+      driver,
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+      fare: (Math.random()*20)+5,
+      status: 'Confirmed',
+      tripTime: Math.ceil(Math.random()*30) + ' mins'
+    };
+    state.rides.push(newRide);
+    saveState();
+    document.getElementById('pickup').value = '';
+    document.getElementById('destination').value = '';
+    alert('Booking confirmed!');
+    switchPanel('myrides');
+    renderRides();
+  });
+
+  ridesListEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const idx = Number(btn.dataset.idx);
+    const action = btn.dataset.action;
+    if(action === 'view'){
+      const ride = state.rides.slice().reverse()[idx];
+      if(!ride) return;
+      // populate ride details screen
+      rdDriver.textContent = ride.driver.name;
+      rdRating.textContent = '★'.repeat(Math.round(ride.driver.rating)) + ' ☆';
+      rdModel.textContent = ride.driver.model;
+      rdTime.textContent = ride.tripTime || '—';
+      // show details
+      showScreen('rideDetails');
+    }
+  });
+
+  cancelRideBtn.addEventListener('click', () => {
+    if(!confirm('Cancel this ride?')) return;
+    // mark last ride as cancelled for demo (simple)
+    if(state.rides.length){
+      const last = state.rides[state.rides.length - 1];
+      last.status = 'Cancelled';
+      saveState();
+      alert('Ride cancelled.');
+    }
+    showScreen('rider');
+    renderRides();
+  });
+
+  backToRider.addEventListener('click', () => {
+    showScreen('rider');
+    renderRides();
+  });
+
+  sendFeedback.addEventListener('click', () => {
+    const txt = feedbackText.value.trim();
+    if(!txt) return alert('Write something first.');
+    alert('Thanks for your feedback!');
+    feedbackText.value = '';
+  });
+
+  // Admin navigation
+  toAdminBtn.addEventListener('click', () => {
+    // quick admin access for demo
+    showScreen('admin');
+  });
+
+  adminBack.addEventListener('click', () => {
+    showScreen('rider');
+  });
+
+  adminLogout.addEventListener('click', () => {
+    state.user = null;
+    showScreen('login');
+  });
+
+  document.querySelectorAll('[data-admin]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.admin;
+      if(key === 'drivers'){
+        adminArea.innerHTML = `
+          <h3>Drivers</h3>
+          <ul>${state.drivers.map(d => `<li>${d.name} • ${d.number} • ${d.model} (${d.rating})</li>`).join('')}</ul>
+          <button id="addDriver" class="small-btn">Add Driver (demo)</button>
+        `;
+        document.getElementById('addDriver').addEventListener('click', () => {
+          const name = prompt('Driver name?','New Driver');
+          if(!name) return;
+          state.drivers.push({ id:Date.now(), name, number:'X123', rating:4.5, model:'Model X' });
+          localStorage.setItem('drivers', JSON.stringify(state.drivers));
+          alert('Driver added (mock).');
+        });
+      } else if(key === 'riders'){
+        adminArea.innerHTML = `<h3>Riders</h3><p>Riders management is demo-only.</p>`;
+      } else if(key === 'rides'){
+        adminArea.innerHTML = `<h3>Rides</h3><pre>${JSON.stringify(state.rides, null, 2)}</pre>`;
+      }
+    });
+  });
+
+  // Initialize default screen
+  showScreen('login');
+  switchPanel('book');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!-- Updated Uber Booking Frontend with Interactive Functionality -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Uber Booking - Interactive Frontend</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --main:#0A0A23;--accent:#F5C518;--muted:#6b7280;--card:#0f1724;--radius:12px;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui;margin:0;background:linear-gradient(180deg,var(--main),#07102b);color:#e6eef8;transition:.3s;background-attachment:fixed;}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(0,0,0,0.2);backdrop-filter:blur(6px);position:sticky;top:0;z-index:10}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:44px;height:44px;border-radius:10px;background:var(--accent);color:var(--main);display:flex;align-items:center;justify-content:center;font-weight:700}
+    nav{display:flex;gap:18px}
+    nav a{color:inherit;text-decoration:none;padding:8px 12px;border-radius:8px}
+    nav a.active,nav a:hover{background:rgba(255,255,255,0.1)}
+    .container{max-width:1200px;margin:auto;padding:20px}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+    .card{background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;backdrop-filter:blur(8px);transition:.3s}
+    .card:hover{transform:translateY(-4px)}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1)}
+    th{cursor:pointer}
+    button{background:var(--accent);color:var(--main);border:none;padding:8px 12px;border-radius:6px;font-weight:600;cursor:pointer}
+    input,select{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:inherit}
+    #themeToggle{cursor:pointer}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:20}
+    .modal.active{display:flex}
+    .modal-content{background:#fff;color:#000;padding:20px;border-radius:8px;min-width:300px}
+    .light{background:#f9fafb;color:#111}
+    .light header{background:#fff;color:#000}
+    .light .card{background:#fff;color:#000}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="mark">UB</div><h1>Uber Booking System</h1></div>
+  <nav>
+    <a href="#" data-view="dashboard" class="active">Dashboard</a>
+    <a href="#" data-view="users">Users</a>
+    <a href="#" data-view="drivers">Drivers</a>
+    <a href="#" data-view="bookings">Bookings</a>
+    <a href="#" data-view="vehicles">Vehicles</a>
+  </nav>
+  <div id="themeToggle">🌙</div>
+</header>
+<div class="container">
+  <section id="dashboard" class="view">
+    <div class="grid-3">
+      <div class="card"><h3>Total Rides</h3><p id="rideCount">0</p></div>
+      <div class="card"><h3>Active Drivers</h3><p id="driverCount">0</p></div>
+      <div class="card"><h3>Revenue</h3><canvas id="revenueChart" height="120"></canvas></div>
+    </div>
+  </section>
+
+  <section id="users" class="view" style="display:none">
+    <div class="card"><h3>Users <button id="addUserBtn">+ Add</button></h3>
+      <table id="userTable"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <section id="drivers" class="view" style="display:none">
+    <div class="card"><h3>Drivers <button id="addDriverBtn">+ Add</button></h3>
+      <table id="driverTable"><thead><tr><th>ID</th><th>Name</th><th>License</th><th>Phone</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <section id="bookings" class="view" style="display:none">
+    <div class="card"><h3>Bookings <button id="addBookingBtn">+ Add</button></h3>
+      <table id="bookingTable"><thead><tr><th>ID</th><th>User</th><th>Driver</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <section id="vehicles" class="view" style="display:none">
+    <div class="card"><h3>Vehicles <button id="addVehicleBtn">+ Add</button></h3>
+      <table id="vehicleTable"><thead><tr><th>ID</th><th>Model</th><th>Plate</th><th>Driver</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle"></h3>
+    <form id="modalForm"></form>
+  </div>
+</div>
+
+<script>
+// Local storage simulation
+const db = {
+  users: JSON.parse(localStorage.getItem('users')||'[]'),
+  drivers: JSON.parse(localStorage.getItem('drivers')||'[]'),
+  bookings: JSON.parse(localStorage.getItem('bookings')||'[]'),
+  vehicles: JSON.parse(localStorage.getItem('vehicles')||'[]')
+}
+
+const save = ()=>{
+  for(const k in db){localStorage.setItem(k,JSON.stringify(db[k]))}
+  renderAll();
+}
+
+function renderAll(){
+  const uBody=document.querySelector('#userTable tbody');
+  const dBody=document.querySelector('#driverTable tbody');
+  const bBody=document.querySelector('#bookingTable tbody');
+  const vBody=document.querySelector('#vehicleTable tbody');
+  uBody.innerHTML=db.users.map(u=>`<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.phone}</td></tr>`).join('');
+  dBody.innerHTML=db.drivers.map(d=>`<tr><td>${d.id}</td><td>${d.name}</td><td>${d.license}</td><td>${d.phone}</td></tr>`).join('');
+  bBody.innerHTML=db.bookings.map(b=>`<tr><td>${b.id}</td><td>${b.user}</td><td>${b.driver}</td><td>${b.status}</td></tr>`).join('');
+  vBody.innerHTML=db.vehicles.map(v=>`<tr><td>${v.id}</td><td>${v.model}</td><td>${v.plate}</td><td>${v.driver}</td></tr>`).join('');
+  document.getElementById('rideCount').textContent=db.bookings.length;
+  document.getElementById('driverCount').textContent=db.drivers.length;
+}
+renderAll();
+
+// Navigation
+const links=document.querySelectorAll('nav a');
+links.forEach(l=>l.addEventListener('click',e=>{
+  e.preventDefault();
+  links.forEach(x=>x.classList.remove('active'));
+  l.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+  document.getElementById(l.dataset.view).style.display='block';
+}))
+
+// Modal handling
+const modal=document.getElementById('modal');
+const form=document.getElementById('modalForm');
+const title=document.getElementById('modalTitle');
+function openModal(entity){
+  modal.classList.add('active');
+  title.textContent='Add '+entity;
+  const fields={
+    users:['id','name','email','phone'],
+    drivers:['id','name','license','phone'],
+    bookings:['id','user','driver','status'],
+    vehicles:['id','model','plate','driver']
+  }[entity];
+  form.innerHTML=fields.map(f=>`<div><label>${f}</label><input name="${f}" required></div>`).join('')+`<button type='submit'>Save</button>`;
+  form.onsubmit=(e)=>{
+    e.preventDefault();
+    const data=Object.fromEntries(new FormData(form).entries());
+    db[entity].push(data);
+    save();
+    modal.classList.remove('active');
+  }
+}
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('active')});
+
+document.getElementById('addUserBtn').onclick=()=>openModal('users');
+document.getElementById('addDriverBtn').onclick=()=>openModal('drivers');
+document.getElementById('addBookingBtn').onclick=()=>openModal('bookings');
+document.getElementById('addVehicleBtn').onclick=()=>openModal('vehicles');
+
+// Chart.js revenue mock
+const ctx=document.getElementById('revenueChart');
+new Chart(ctx,{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Revenue',data:[1200,1800,1600,1900,2100,2500,2000],borderColor:'#F5C518',fill:false}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#ccc'}},y:{ticks:{color:'#ccc'}}}}});
+
+// Theme toggle
+const toggle=document.getElementById('themeToggle');
+toggle.onclick=()=>{
+  document.body.classList.toggle('light');
+  toggle.textContent=document.body.classList.contains('light')?'🌞':'🌙';
+}
+</script>
+</body>
+</html>

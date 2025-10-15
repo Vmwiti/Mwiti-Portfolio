@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Uber Booking — Frontend Only (Admin)</title>
+<style>
+  :root{--accent:#4f46e5;--muted:#6b7280;--bg:#f7fafc}
+  *{box-sizing:border-box}
+  body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:#111}
+  .wrap{max-width:1100px;margin:18px auto;padding:16px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  header h1{font-size:20px;margin:0}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{padding:8px 12px;border-radius:8px;background:#fff;border:1px solid #e6e9ee;cursor:pointer}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(15,23,42,0.05);margin-top:12px}
+  .grid{display:grid;gap:12px}
+  .grid-cols-3{grid-template-columns:repeat(3,1fr)}
+  .table{width:100%;border-collapse:collapse;margin-top:8px}
+  .table th, .table td{padding:8px;border-bottom:1px solid #eef2f7;text-align:left;font-size:14px}
+  .form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .input, select, textarea{padding:8px;border:1px solid #e5e7eb;border-radius:6px;min-width:120px}
+  .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:6px;border:none;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--accent);border:1px solid #e6e9ee}
+  .small{font-size:13px}
+  .actions button{margin-right:6px}
+  .search{margin-bottom:10px}
+  .flex{display:flex;gap:8px;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  footer{margin-top:14px;color:var(--muted);font-size:13px}
+  @media(max-width:900px){.grid-cols-3{grid-template-columns:1fr}}
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:999}
+  .modal{background:#fff;padding:16px;border-radius:10px;width:100%;max-width:720px;box-shadow:0 10px 30px rgba(0,0,0,0.12)}
+  .row{display:flex;gap:8px;align-items:center}
+  label{font-size:13px;color:var(--muted)}
+  table .empty{color:var(--muted)}
+  .badge{padding:6px 8px;border-radius:999px;font-size:12px;background:#f3f4f6;color:#111}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Uber Booking — Frontend-only Admin</h1>
+      <div class="muted">Manage Drivers • Users • Vehicles • Bookings • Payments (no backend)</div>
+    </div>
+    <div class="flex">
+      <button class="btn" id="exportBtn" title="Export current data as JSON">Export JSON</button>
+      <label class="tab btn ghost" style="cursor:pointer"><input id="importFile" type="file" accept="application/json" style="display:none">Import</label>
+      <button class="btn ghost" id="clearBtn" title="Clear local data">Clear</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="drivers">Drivers</div>
+    <div class="tab" data-tab="users">Users</div>
+    <div class="tab" data-tab="vehicles">Vehicles</div>
+    <div class="tab" data-tab="bookings">Bookings</div>
+    <div class="tab" data-tab="payments">Payments</div>
+  </nav>
+
+  <section id="content">
+    <!-- content injected by JS -->
+  </section>
+
+  <footer class="muted">This is a client-side demo. Save data to your browser storage. Use Export/Import to move data between machines.</footer>
+</div>
+
+<!-- Modal container -->
+<div id="modalRoot" style="display:none"></div>
+
+<script>
+/*
+  Frontend-only Uber Booking admin
+  - Keep everything in-memory (optionally in localStorage)
+  - Entities: drivers, users, vehicles, bookings, payments
+  - Simple CRUD, search, and linking between records
+*/
+
+const STORAGE_KEY = 'uber_demo_data_v1';
+
+let state = {
+  drivers: [],
+  users: [],
+  vehicles: [],
+  bookings: [],
+  payments: [],
+};
+
+const templates = {
+  dashboard: () => {
+    const dCount = state.drivers.length;
+    const uCount = state.users.length;
+    const vCount = state.vehicles.length;
+    const bCount = state.bookings.length;
+    const pCount = state.payments.length;
+
+    const recentBookings = [...state.bookings].slice(0,5).map(b => {
+      const user = state.users.find(u=>u.id===b.userId);
+      return `<div style="padding:8px;border-bottom:1px solid #f1f5f9;">
+        <div style="font-weight:600">${b.from} → ${b.to}</div>
+        <div class="muted" style="font-size:13px">${user ? user.name : 'Unknown'} • ${new Date(b.createdAt).toLocaleString()}</div>
+      </div>`;
+    }).join('') || '<div class="muted empty" style="padding:8px">No bookings yet</div>';
+
+    return `
+      <div class="card">
+        <h2>Dashboard</h2>
+        <div class="grid grid-cols-3" style="margin-top:12px">
+          <div class="card small"><div class="muted">Drivers</div><div style="font-weight:700;font-size:20px">${dCount}</div></div>
+          <div class="card small"><div class="muted">Users</div><div style="font-weight:700;font-size:20px">${uCount}</div></div>
+          <div class="card small"><div class="muted">Vehicles</div><div style="font-weight:700;font-size:20px">${vCount}</div></div>
+        </div>
+
+        <div class="card" style="margin-top:12px"><h3>Recent Bookings</h3>${recentBookings}</div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Quick Stats</h3>
+          <div class="row" style="gap:12px;margin-top:8px">
+            <div class="badge">Bookings: ${bCount}</div>
+            <div class="badge">Payments: ${pCount}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  entityPage: (opts) => {
+    // opts: {id, title, columns: [{key,label}], formFields: [{key,label,type,placeholder}], renderRow}
+    const { id, title, columns, formFields } = opts;
+    const rowsHtml = (getRowsFor(id) || []).map(r => {
+      const tds = columns.map(c => `<td>${c.render ? c.render(r) : escapeHtml(String(r[c.key] ?? '—'))}</td>`).join('');
+      return `<tr data-id="${r.id}">${tds}<td class="actions small">
+        <button class="btn ghost" data-action="edit" data-id="${r.id}">Edit</button>
+        <button class="btn ghost" data-action="delete" data-id="${r.id}">Delete</button>
+      </td></tr>`;
+    }).join('') || `<tr><td class="empty muted" colspan="${columns.length+1}">No records found</td></tr>`;
+
+    const searchMarkup = `<div class="search"><input class="input" id="${id}_search" placeholder="Search ${title.toLowerCase()}..." oninput="renderCurrentTab()" style="width:100%"></div>`;
+
+    // Add button
+    return `
+      <div class="card">
+        <h2>${title}</h2>
+        ${searchMarkup}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="muted small">Manage ${title.toLowerCase()}</div>
+          <div>
+            <button class="btn" data-action="new" data-entity="${id}">New ${title.slice(0,-1)}</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="table">
+            <thead><tr>${columns.map(c=>`<th>${c.label}</th>`).join('')}<th>Actions</th></tr></thead>
+            <tbody id="${id}_table">${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  },
+
+  bookingsPage: () => {
+    const rowsHtml = state.bookings.map(b => {
+      const user = state.users.find(u=>u.id===b.userId);
+      const driver = state.drivers.find(d=>d.id===b.driverId);
+      const vehicle = state.vehicles.find(v=>v.id===b.vehicleId);
+      return `<tr data-id="${b.id}">
+        <td>${escapeHtml(b.id)}</td>
+        <td>${escapeHtml(user ? user.name : '—')}</td>
+        <td>${escapeHtml(b.from)} → ${escapeHtml(b.to)}</td>
+        <td>${escapeHtml(driver ? driver.name : '—')}</td>
+        <td>${escapeHtml(vehicle ? vehicle.plate : '—')}</td>
+        <td>KES ${escapeHtml(b.fare)}</td>
+        <td>${escapeHtml(b.status)}</td>
+        <td class="actions small">
+          <button class="btn ghost" data-action="edit" data-id="${b.id}">Edit</button>
+          <button class="btn ghost" data-action="delete" data-id="${b.id}">Delete</button>
+        </td>
+      </tr>`;
+    }).join('') || `<tr><td class="empty muted" colspan="8">No bookings</td></tr>`;
+
+    return `
+      <div class="card">
+        <h2>Bookings</h2>
+        <div class="muted small">Create and update ride requests</div>
+        <div style="margin-top:12px" class="card">
+          <button class="btn" data-action="new" data-entity="bookings">New Booking</button>
+          <div style="margin-top:12px">
+            <table class="table"><thead><tr><th>#</th><th>User</th><th>From → To</th><th>Driver</th><th>Vehicle</th><th>Fare</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="bookings_table">${rowsHtml}</tbody></table>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  paymentsPage: () => {
+    const rowsHtml = state.payments.map(p => {
+      const booking = state.bookings.find(b=>b.id===p.bookingId);
+      return `<tr data-id="${p.id}">
+        <td>${escapeHtml(p.id)}</td>
+        <td>${escapeHtml(booking ? booking.id : '—')}</td>
+        <td>${escapeHtml(p.amount)}</td>
+        <td>${escapeHtml(p.method)}</td>
+        <td>${escapeHtml(p.status)}</td>
+        <td>${p.paidAt ? escapeHtml(new Date(p.paidAt).toLocaleString()) : '—'}</td>
+        <td class="actions small">
+          <button class="btn ghost" data-action="delete" data-id="${p.id}">Delete</button>
+        </td>
+      </tr>`;
+    }).join('') || `<tr><td class="empty muted" colspan="7">No payments</td></tr>`;
+
+    return `
+      <div class="card">
+        <h2>Payments</h2>
+        <div class="muted small">Record payments for bookings</div>
+        <div style="margin-top:12px" class="card">
+          <button class="btn" data-action="new" data-entity="payments">New Payment</button>
+          <div style="margin-top:12px">
+            <table class="table"><thead><tr><th>#</th><th>Booking</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid At</th><th>Actions</th></tr></thead>
+            <tbody id="payments_table">${rowsHtml}</tbody></table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+};
+
+// Utility
+function idGen(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+function escapeHtml(s){ return s.replace && s.replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]); }
+function nowIso(){ return new Date().toISOString(); }
+
+// Local storage persistence
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){ try{ state = JSON.parse(raw); } catch(e){ console.warn('invalid saved data'); } }
+}
+function clearState(){ localStorage.removeItem(STORAGE_KEY); state = {drivers:[],users:[],vehicles:[],bookings:[],payments:[]}; renderCurrentTab(); }
+
+// getters
+function getRowsFor(entity){
+  switch(entity){
+    case 'drivers': return state.drivers;
+    case 'users': return state.users;
+    case 'vehicles': return state.vehicles;
+    case 'bookings': return state.bookings;
+    case 'payments': return state.payments;
+    default: return [];
+  }
+}
+
+// initial sample data (only if empty)
+function seedIfEmpty(){
+  if(state.drivers.length===0 && state.users.length===0){
+    const d1 = { id: idGen('drv'), name:'Alice Mwangi', phone:'+254700111222', rating:4.8, status:'active', createdAt: nowIso() };
+    const d2 = { id: idGen('drv'), name:'John Kamau', phone:'+254700333444', rating:4.6, status:'active', createdAt: nowIso() };
+    const u1 = { id: idGen('usr'), name:'Vini Chozen', email:'vini@example.com', phone:'+254712345678', createdAt: nowIso() };
+    const v1 = { id: idGen('veh'), plate:'KAB-123A', model:'Toyota Corolla', color:'White', driverId: d1.id, createdAt: nowIso() };
+    const b1 = { id: idGen('bk'), userId:u1.id, driverId:d1.id, vehicleId:v1.id, from:'Kilimani', to:'Westlands', fare:420, status:'completed', createdAt: nowIso() };
+    const p1 = { id: idGen('pay'), bookingId:b1.id, amount:420, method:'Mpesa', status:'paid', paidAt: nowIso(), createdAt: nowIso() };
+    state.drivers.push(d1,d2); state.users.push(u1); state.vehicles.push(v1); state.bookings.push(b1); state.payments.push(p1);
+    saveState();
+  }
+}
+
+// Rendering & interactions
+let currentTab = 'dashboard';
+const contentEl = document.getElementById('content');
+const tabsEl = document.getElementById('tabs');
+
+function renderCurrentTab(){
+  // update active tab UI
+  Array.from(tabsEl.querySelectorAll('.tab')).forEach(t => t.classList.toggle('active', t.dataset.tab === currentTab));
+  let html = '';
+  if(currentTab === 'dashboard'){ html = templates.dashboard(); }
+  else if(currentTab === 'drivers'){
+    html = templates.entityPage({
+      id:'drivers',
+      title:'Drivers',
+      columns:[
+        { key:'name', label:'Name' },
+        { key:'phone', label:'Phone' },
+        { key:'rating', label:'Rating' },
+        { key:'status', label:'Status' }
+      ],
+      formFields:[
+        {key:'name',label:'Name'},
+      ]
+    });
+  } else if(currentTab === 'users'){
+    html = templates.entityPage({
+      id:'users',
+      title:'Users',
+      columns:[
+        { key:'name', label:'Name' },
+        { key:'email', label:'Email' },
+        { key:'phone', label:'Phone' }
+      ]
+    });
+  } else if(currentTab === 'vehicles'){
+    html = templates.entityPage({
+      id:'vehicles',
+      title:'Vehicles',
+      columns:[
+        { key:'plate', label:'Plate' },
+        { key:'model', label:'Model' },
+        { key:'color', label:'Color' },
+        { key:'driverId', label:'Driver', render: r => (state.drivers.find(d=>d.id===r.driverId)?.name||'—') }
+      ]
+    });
+  } else if(currentTab === 'bookings'){
+    html = templates.bookingsPage();
+  } else if(currentTab === 'payments'){
+    html = templates.paymentsPage();
+  }
+  contentEl.innerHTML = html;
+
+  // attach handlers for entity tables
+  attachTableHandlers();
+}
+
+function attachTableHandlers(){
+  // search filters
+  const searchInput = document.getElementById(currentTab + '_search');
+  if(searchInput){
+    const rows = getRowsFor(currentTab) || [];
+    const filter = (val) => {
+      const q = (val||'').toLowerCase();
+      const tbody = document.getElementById(currentTab + '_table');
+      if(!tbody) return;
+      tbody.innerHTML = rows.filter(r => {
+        return Object.values(r).some(v => String(v||'').toLowerCase().includes(q));
+      }).map(r => {
+        const cols = (() => {
+          if(currentTab==='drivers') return `<td>${r.name}</td><td>${r.phone}</td><td>${r.rating}</td><td>${r.status}</td>`;
+          if(currentTab==='users') return `<td>${r.name}</td><td>${r.email||'—'}</td><td>${r.phone||'—'}</td>`;
+          if(currentTab==='vehicles') return `<td>${r.plate}</td><td>${r.model}</td><td>${r.color}</td><td>${state.drivers.find(d=>d.id===r.driverId)?.name||'—'}</td>`;
+          return '';
+        })();
+        return `<tr data-id="${r.id}">${cols}<td class="actions small">
+          <button class="btn ghost" data-action="edit" data-id="${r.id}">Edit</button>
+          <button class="btn ghost" data-action="delete" data-id="${r.id}">Delete</button>
+        </td></tr>`;
+      }).join('') || `<tr><td class="empty muted" colspan="5">No records match</td></tr>`;
+    };
+    searchInput.oninput = (e) => filter(e.target.value);
+  }
+
+  // table buttons
+  contentEl.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.onclick = (ev) => {
+      const action = btn.dataset.action;
+      const entity = btn.dataset.entity;
+      const id = btn.dataset.id;
+      if(action === 'new'){
+        openEditor(entity || currentTab, null);
+      } else if(action === 'edit'){
+        openEditor(currentTab, id);
+      } else if(action === 'delete'){
+        if(confirm('Delete this record?')) {
+          deleteRecord(currentTab, id);
+          renderCurrentTab();
+        }
+      }
+    };
+  });
+
+  // Bookings and Payments separate table handling
+  if(currentTab === 'bookings'){
+    // edit and delete
+    document.querySelectorAll('#bookings_table button[data-action]').forEach(b=>{
+      b.onclick = ()=> {
+        const act = b.dataset.action; const id = b.dataset.id;
+        if(act === 'edit') openEditor('bookings', id);
+        if(act === 'delete' && confirm('Delete booking?')) { deleteRecord('bookings', id); renderCurrentTab(); }
+      };
+    });
+  }
+  if(currentTab === 'payments'){
+    document.querySelectorAll('#payments_table button[data-action]').forEach(b=>{
+      b.onclick = ()=> {
+        const act = b.dataset.action; const id = b.dataset.id;
+        if(act === 'delete' && confirm('Delete payment?')) { deleteRecord('payments', id); renderCurrentTab(); }
+      };
+    });
+  }
+
+  // new buttons in bookings/payments pages
+  contentEl.querySelectorAll('button[data-entity]').forEach(b=>{
+    b.onclick = ()=> openEditor(b.dataset.entity, null);
+  });
+}
+
+// CRUD helpers
+function createRecord(entity, payload){
+  payload.id = idGen(entity.slice(0,3));
+  payload.createdAt = nowIso();
+  (state[entity] || state[entity+'s'] || []).push(payload);
+  // unify key names
+  if(!state[entity]) state[entity] = [];
+  if(entity === 'drivers' || entity==='users' || entity==='vehicles' || entity==='bookings' || entity==='payments'){
+    state[entity].push(payload);
+  }
+  saveState();
+}
+
+function updateRecord(entity, id, patch){
+  const list = state[entity];
+  const idx = list.findIndex(x=>x.id===id);
+  if(idx>=0){ list[idx] = Object.assign({}, list[idx], patch); saveState(); }
+}
+
+function deleteRecord(entity, id){
+  state[entity] = state[entity].filter(x=>x.id!==id);
+  // cascade: if drivers deleted, unset driverId in vehicles & bookings
+  if(entity === 'drivers'){
+    state.vehicles.forEach(v=> { if(v.driverId === id) v.driverId = null; });
+    state.bookings.forEach(b => { if(b.driverId===id) b.driverId = null; });
+  }
+  if(entity === 'users'){
+    // remove bookings/payments for that user
+    const userBookingIds = state.bookings.filter(b=>b.userId===id).map(b=>b.id);
+    state.bookings = state.bookings.filter(b=>b.userId!==id);
+    state.payments = state.payments.filter(p=> !userBookingIds.includes(p.bookingId));
+  }
+  if(entity === 'vehicles'){
+    state.bookings.forEach(b => { if(b.vehicleId===id) b.vehicleId = null; });
+  }
+  if(entity === 'bookings'){
+    state.payments = state.payments.filter(p => p.bookingId !== id);
+  }
+  saveState();
+}
+
+// Editor modal
+function openEditor(entity, id){
+  // entity in plural form: drivers, users, vehicles, bookings, payments
+  const modalRoot = document.getElementById('modalRoot');
+  modalRoot.style.display = 'block';
+  modalRoot.innerHTML = '';
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const closeModal = () => { modalRoot.style.display='none'; modalRoot.innerHTML=''; renderCurrentTab(); };
+
+  if(entity === 'drivers'){
+    const isEdit = !!id;
+    const data = isEdit ? state.drivers.find(d=>d.id===id) : { name:'', phone:'', rating:5.0, status:'active' };
+    modal.innerHTML = `<h3>${isEdit ? 'Edit' : 'New'} Driver</h3>
+      <div class="form-row" style="margin-top:8px">
+        <div style="flex:1"><label>Name</label><input class="input" id="drv_name" value="${escapeHtml(data.name||'')}"></div>
+        <div style="width:140px"><label>Phone</label><input class="input" id="drv_phone" value="${escapeHtml(data.phone||'')}"></div>
+        <div style="width:120px"><label>Rating</label><input class="input" id="drv_rating" type="number" step="0.1" value="${data.rating||5.0}"></div>
+        <div style="width:140px"><label>Status</label>
+          <select id="drv_status" class="input"><option value="active">active</option><option value="inactive">inactive</option></select>
+        </div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn ghost" id="drv_cancel">Cancel</button>
+        <button class="btn" id="drv_save">${isEdit? 'Save' : 'Create'}</button>
+      </div>`;
+    backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+    document.getElementById('drv_status').value = data.status || 'active';
+    document.getElementById('drv_cancel').onclick = closeModal;
+    document.getElementById('drv_save').onclick = () => {
+      const payload = { name: document.getElementById('drv_name').value.trim(), phone: document.getElementById('drv_phone').value.trim(), rating: parseFloat(document.getElementById('drv_rating').value||5.0), status: document.getElementById('drv_status').value };
+      if(!payload.name){ alert('Name required'); return; }
+      if(isEdit) updateRecord('drivers', id, payload); else state.drivers.push(Object.assign({ id: idGen('drv'), createdAt: nowIso() }, payload));
+      saveState(); closeModal();
+    };
+    return;
+  }
+
+  if(entity === 'users'){
+    const isEdit = !!id;
+    const data = isEdit ? state.users.find(u=>u.id===id) : { name:'', email:'', phone:'' };
+    modal.innerHTML = `<h3>${isEdit ? 'Edit' : 'New'} User</h3>
+      <div class="form-row" style="margin-top:8px">
+        <div style="flex:1"><label>Name</label><input class="input" id="usr_name" value="${escapeHtml(data.name||'')}"></div>
+        <div style="width:220px"><label>Email</label><input class="input" id="usr_email" value="${escapeHtml(data.email||'')}"></div>
+        <div style="width:160px"><label>Phone</label><input class="input" id="usr_phone" value="${escapeHtml(data.phone||'')}"></div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn ghost" id="usr_cancel">Cancel</button>
+        <button class="btn" id="usr_save">${isEdit? 'Save' : 'Create'}</button>
+      </div>`;
+    backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+    document.getElementById('usr_cancel').onclick = closeModal;
+    document.getElementById('usr_save').onclick = () => {
+      const payload = { name: document.getElementById('usr_name').value.trim(), email: document.getElementById('usr_email').value.trim(), phone: document.getElementById('usr_phone').value.trim() };
+      if(!payload.name){ alert('Name required'); return; }
+      if(isEdit) updateRecord('users', id, payload); else state.users.push(Object.assign({ id: idGen('usr'), createdAt: nowIso() }, payload));
+      saveState(); closeModal();
+    };
+    return;
+  }
+
+  if(entity === 'vehicles'){
+    const isEdit = !!id;
+    const data = isEdit ? state.vehicles.find(v=>v.id===id) : { plate:'', model:'', color:'', driverId: null };
+    const driverOptions = `<option value="">-- Unassigned --</option>` + state.drivers.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    modal.innerHTML = `<h3>${isEdit ? 'Edit' : 'New'} Vehicle</h3>
+      <div class="form-row" style="margin-top:8px">
+        <div style="width:160px"><label>Plate</label><input class="input" id="veh_plate" value="${escapeHtml(data.plate||'')}"></div>
+        <div style="flex:1"><label>Model</label><input class="input" id="veh_model" value="${escapeHtml(data.model||'')}"></div>
+        <div style="width:140px"><label>Color</label><input class="input" id="veh_color" value="${escapeHtml(data.color||'')}"></div>
+        <div style="width:200px"><label>Driver</label><select id="veh_driver" class="input">${driverOptions}</select></div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn ghost" id="veh_cancel">Cancel</button>
+        <button class="btn" id="veh_save">${isEdit? 'Save' : 'Create'}</button>
+      </div>`;
+    backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+    document.getElementById('veh_driver').value = data.driverId || '';
+    document.getElementById('veh_cancel').onclick = closeModal;
+    document.getElementById('veh_save').onclick = () => {
+      const payload = { plate: document.getElementById('veh_plate').value.trim(), model: document.getElementById('veh_model').value.trim(), color: document.getElementById('veh_color').value.trim(), driverId: document.getElementById('veh_driver').value || null };
+      if(!payload.plate){ alert('Plate required'); return; }
+      if(isEdit) updateRecord('vehicles', id, payload); else state.vehicles.push(Object.assign({ id: idGen('veh'), createdAt: nowIso() }, payload));
+      saveState(); closeModal();
+    };
+    return;
+  }
+
+  if(entity === 'bookings'){
+    const isEdit = !!id;
+    const data = isEdit ? state.bookings.find(b=>b.id===id) : { userId:'', driverId:'', vehicleId:'', from:'', to:'', fare:0, status:'requested' };
+    const userOptions = state.users.map(u=>`<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
+    const driverOptions = '<option value="">-- none --</option>' + state.drivers.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+    const vehicleOptions = '<option value="">-- none --</option>' + state.vehicles.map(v=>`<option value="${v.id}">${escapeHtml(v.plate)}</option>`).join('');
+
+    modal.innerHTML = `<h3>${isEdit ? 'Edit' : 'New'} Booking</h3>
+      <div class="form-row" style="margin-top:8px">
+        <div style="width:220px"><label>User</label><select id="bk_user" class="input">${userOptions}</select></div>
+        <div style="width:220px"><label>Driver</label><select id="bk_driver" class="input">${driverOptions}</select></div>
+        <div style="width:220px"><label>Vehicle</label><select id="bk_vehicle" class="input">${vehicleOptions}</select></div>
+      </div>
+      <div class="form-row" style="margin-top:8px">
+        <div style="flex:1"><label>From</label><input class="input" id="bk_from" value="${escapeHtml(data.from||'')}"></div>
+        <div style="flex:1"><label>To</label><input class="input" id="bk_to" value="${escapeHtml(data.to||'')}"></div>
+        <div style="width:120px"><label>Fare</label><input class="input" id="bk_fare" type="number" step="0.01" value="${data.fare||0}"></div>
+        <div style="width:140px"><label>Status</label><select id="bk_status" class="input"><option>requested</option><option>accepted</option><option>completed</option><option>cancelled</option><option>paid</option></select></div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn ghost" id="bk_cancel">Cancel</button>
+        <button class="btn" id="bk_save">${isEdit? 'Save' : 'Create'}</button>
+      </div>`;
+    backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+
+    document.getElementById('bk_user').value = data.userId || (state.users[0]?.id||'');
+    document.getElementById('bk_driver').value = data.driverId || '';
+    document.getElementById('bk_vehicle').value = data.vehicleId || '';
+    document.getElementById('bk_status').value = data.status || 'requested';
+    document.getElementById('bk_cancel').onclick = closeModal;
+    document.getElementById('bk_save').onclick = () => {
+      const payload = {
+        userId: document.getElementById('bk_user').value,
+        driverId: document.getElementById('bk_driver').value || null,
+        vehicleId: document.getElementById('bk_vehicle').value || null,
+        from: document.getElementById('bk_from').value.trim(),
+        to: document.getElementById('bk_to').value.trim(),
+        fare: parseFloat(document.getElementById('bk_fare').value||0),
+        status: document.getElementById('bk_status').value
+      };
+      if(!payload.userId || !payload.from || !payload.to){ alert('User, from and to are required'); return; }
+      if(isEdit) updateRecord('bookings', id, payload); else state.bookings.push(Object.assign({ id: idGen('bk'), createdAt: nowIso() }, payload));
+      saveState(); closeModal();
+    };
+    return;
+  }
+
+  if(entity === 'payments'){
+    const isEdit = !!id;
+    const data = isEdit ? state.payments.find(p=>p.id===id) : { bookingId:'', amount:0, method:'Mpesa', status:'paid' };
+    const bookingOptions = state.bookings.map(b=>`<option value="${b.id}">${escapeHtml(b.from)} → ${escapeHtml(b.to)} (ID ${b.id})</option>`).join('');
+    modal.innerHTML = `<h3>New Payment</h3>
+      <div class="form-row" style="margin-top:8px">
+        <div style="flex:1"><label>Booking</label><select id="pay_booking" class="input">${bookingOptions}</select></div>
+        <div style="width:120px"><label>Amount</label><input class="input" id="pay_amount" type="number" step="0.01" value="${data.amount||0}"></div>
+        <div style="width:160px"><label>Method</label><select id="pay_method" class="input"><option>Mpesa</option><option>Card</option><option>Cash</option></select></div>
+        <div style="width:140px"><label>Status</label><select id="pay_status" class="input"><option value="paid">paid</option><option value="pending">pending</option><option value="failed">failed</option></select></div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
+        <button class="btn ghost" id="pay_cancel">Cancel</button>
+        <button class="btn" id="pay_save">${isEdit? 'Save' : 'Create'}</button>
+      </div>`;
+    backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+    document.getElementById('pay_booking').value = data.bookingId || (state.bookings[0]?.id||'');
+    document.getElementById('pay_method').value = data.method || 'Mpesa';
+    document.getElementById('pay_status').value = data.status || 'paid';
+    document.getElementById('pay_cancel').onclick = closeModal;
+    document.getElementById('pay_save').onclick = () => {
+      const payload = {
+        bookingId: document.getElementById('pay_booking').value,
+        amount: parseFloat(document.getElementById('pay_amount').value||0),
+        method: document.getElementById('pay_method').value,
+        status: document.getElementById('pay_status').value,
+        paidAt: document.getElementById('pay_status').value === 'paid' ? nowIso() : null
+      };
+      if(!payload.bookingId || !payload.amount){ alert('Booking and amount required'); return; }
+      state.payments.push(Object.assign({ id: idGen('pay'), createdAt: nowIso() }, payload));
+      if(payload.status === 'paid'){
+        // mark booking paid
+        const bk = state.bookings.find(b=>b.id===payload.bookingId);
+        if(bk) bk.status = 'paid';
+      }
+      saveState(); closeModal();
+    };
+    return;
+  }
+
+  // default fallback
+  backdrop.appendChild(modal); modalRoot.appendChild(backdrop);
+}
+
+// Tab clicks
+tabsEl.addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  currentTab = tab.dataset.tab;
+  renderCurrentTab();
+});
+
+// initial load
+loadState();
+seedIfEmpty();
+renderCurrentTab();
+
+// global event listeners: delegate delete/edit from dynamically generated tables
+document.body.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+  // if in bookings/payments pages their buttons may be inside render; handled earlier. This is a general fallback.
+  if(action === 'delete' && id){
+    if(confirm('Delete?')) { deleteRecord(currentTab, id); renderCurrentTab(); }
+  }
+});
+
+// Export / Import / Clear
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'uber_frontend_data.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if(imported && typeof imported === 'object'){ state = imported; saveState(); renderCurrentTab(); alert('Imported successfully'); }
+      else alert('Invalid file');
+    } catch(err){ alert('Failed to parse JSON'); }
+  };
+  reader.readAsText(f);
+  e.target.value = '';
+});
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(confirm('Clear all stored demo data? This cannot be undone.')) { clearState(); alert('Cleared'); }
+});
+
+// simple helper: clicking top-level new buttons
+document.addEventListener('click', (e) => {
+  const newBtn = e.target.closest('button[data-action="new"]');
+  if(!newBtn) return;
+  const ent = newBtn.dataset.entity || currentTab;
+  openEditor(ent);
+});
+</script>
+</body>
+</html>

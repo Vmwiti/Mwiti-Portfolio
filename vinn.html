@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uber Booking Info System — Frontend</title>
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* ---------- Custom styles ---------- */
+    :root {
+      --accent: #0d6efd;
+      --muted: #6c757d;
+      --card-radius: 12px;
+    }
+    body { background: #f5f7fb; }
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: linear-gradient(180deg,#fff,#f8fafc);
+      border-right: 1px solid #e6e9ef;
+      padding: 1rem;
+    }
+    .sidebar .nav-link { color: #333; }
+    .brand { font-weight: 700; color: var(--accent); font-size:1.15rem }
+    .content { padding: 1.5rem; }
+    .card-rounded { border-radius: var(--card-radius); box-shadow: 0 6px 18px rgba(20,30,60,0.06) }
+    .small-muted { font-size: 0.85rem; color: var(--muted) }
+    .pointer { cursor: pointer; }
+    .hidden { display: none !important; }
+    .table-actions button { margin-right: 6px; }
+    /* responsive adjustments */
+    @media (max-width: 992px) {
+      .sidebar { display: none; position: absolute; z-index: 1000; }
+      .sidebar.open { display:block; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container-fluid">
+      <button class="btn btn-outline-secondary d-lg-none me-2" id="toggleSidebarBtn">☰</button>
+      <a class="navbar-brand brand" href="#" id="navHome">UberInfo</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item me-2">
+            <span id="currentUserName" class="small-muted">Not logged in</span>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-sm btn-primary" id="logoutBtn" style="display:none">Logout</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="d-flex align-items-center mb-3">
+        <div class="me-auto">
+          <div class="brand">Uber Booking Info</div>
+          <div class="small-muted">Frontend demo</div>
+        </div>
+      </div>
+      <hr>
+      <nav class="nav flex-column" id="mainNav">
+        <a class="nav-link pointer" data-page="dashboard">Dashboard</a>
+        <a class="nav-link pointer" data-page="booking">Bookings</a>
+        <a class="nav-link pointer" data-page="drivers">Drivers</a>
+        <a class="nav-link pointer" data-page="users">Users</a>
+        <a class="nav-link pointer" data-page="vehicles">Vehicles</a>
+        <a class="nav-link pointer" data-page="payments">Payments</a>
+        <a class="nav-link pointer" data-page="reports">Reports</a>
+        <hr>
+        <a class="nav-link pointer text-secondary" data-page="login">Login / Register</a>
+      </nav>
+      <div class="mt-4 small-muted">Tip: This is a frontend-only demo. Data is stored in-memory.</div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-fill content">
+      <!-- LOGIN / REGISTER SCREEN -->
+      <section id="page-login" class="mx-auto" style="max-width:920px">
+        <div class="row g-4 align-items-center">
+          <div class="col-md-5">
+            <div class="card card-rounded p-4">
+              <h5>Sign in to your account</h5>
+              <p class="small-muted">Use demo accounts or register a new user.</p>
+              <form id="loginForm" class="mt-3">
+                <div class="mb-2">
+                  <label class="form-label small">Email</label>
+                  <input required class="form-control" id="loginEmail" type="email" placeholder="you@example.com">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small">Password</label>
+                  <input required class="form-control" id="loginPassword" type="password" placeholder="Password">
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary" type="submit">Login</button>
+                  <button class="btn btn-outline-secondary" id="showRegisterBtn" type="button">Register</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-md-7">
+            <div class="card card-rounded p-4">
+              <h5>Create an account</h5>
+              <p class="small-muted">Register as a commuter or driver (demo only).</p>
+              <form id="registerForm" class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label small">Full name</label>
+                  <input required id="regName" class="form-control" placeholder="Jane Doe">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Role</label>
+                  <select id="regRole" class="form-select">
+                    <option value="user">Commuter (User)</option>
+                    <option value="driver">Driver</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Email</label>
+                  <input required id="regEmail" type="email" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Phone</label>
+                  <input required id="regPhone" class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Password</label>
+                  <input required id="regPassword" type="password" class="form-control">
+                </div>
+                <div class="col-12">
+                  <button class="btn btn-success mt-2" type="submit">Register</button>
+                  <button class="btn btn-outline-secondary mt-2" id="demoSeedBtn" type="button">Seed Demo Data</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h4 class="mb-0">Dashboard</h4>
+            <div class="small-muted">Overview of the system</div>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-outline-secondary" id="refreshDashboardBtn">Refresh</button>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="card card-rounded p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <div class="small-muted">Total Users</div>
+                  <div id="statUsers" class="fs-4 fw-bold">0</div>
+                </div>
+                <div class="align-self-center">
+                  <div class="small-muted">👥</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-rounded p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <div class="small-muted">Total Drivers</div>
+                  <div id="statDrivers" class="fs-4 fw-bold">0</div>
+                </div>
+                <div class="align-self-center">🚗</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-rounded p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <div class="small-muted">Active Bookings</div>
+                  <div id="statBookings" class="fs-4 fw-bold">0</div>
+                </div>
+                <div class="align-self-center">📍</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card card-rounded p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <div class="small-muted">Pending Payments</div>
+                  <div id="statPayments" class="fs-4 fw-bold">0</div>
+                </div>
+                <div class="align-self-center">💳</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 card card-rounded p-3">
+          <h6>Recent Bookings</h6>
+          <div class="table-responsive">
+            <table class="table table-sm" id="recentBookingsTable">
+              <thead>
+                <tr>
+                  <th>#</th><th>User</th><th>Driver</th><th>From</th><th>To</th><th>Status</th><th>Fare</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOOKINGS -->
+      <section id="page-booking" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Bookings</h4>
+          <div>
+            <button class="btn btn-primary" id="openCreateBooking">Create Booking</button>
+          </div>
+        </div>
+
+        <div class="card card-rounded p-3">
+          <div class="table-responsive">
+            <table class="table table-hover" id="bookingsTable">
+              <thead><tr><th>#</th><th>User</th><th>Driver</th><th>From</th><th>To</th><th>Status</th><th>Fare</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- DRIVERS -->
+      <section id="page-drivers" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Drivers</h4>
+          <div>
+            <button class="btn btn-primary" id="openDriverModal">Add Driver</button>
+          </div>
+        </div>
+
+        <div class="card card-rounded p-3">
+          <div class="table-responsive">
+            <table class="table table-striped" id="driversTable">
+              <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>License</th><th>Vehicle</th><th>Rating</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="page-users" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Users (Commuters)</h4>
+          <div>
+            <button class="btn btn-primary" id="openUserModal">Add User</button>
+          </div>
+        </div>
+
+        <div class="card card-rounded p-3">
+          <div class="table-responsive">
+            <table class="table table-hover" id="usersTable">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Rating</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VEHICLES -->
+      <section id="page-vehicles" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Vehicles</h4>
+          <div>
+            <button class="btn btn-primary" id="openVehicleModal">Add Vehicle</button>
+          </div>
+        </div>
+
+        <div class="card card-rounded p-3">
+          <div class="table-responsive">
+            <table class="table table-hover" id="vehiclesTable">
+              <thead><tr><th>#</th><th>Plate</th><th>Make/Model</th><th>Driver</th><th>Capacity</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAYMENTS -->
+      <section id="page-payments" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Payments</h4>
+        </div>
+
+        <div class="card card-rounded p-3">
+          <div class="table-responsive">
+            <table class="table table-hover" id="paymentsTable">
+              <thead><tr><th>#</th><th>Booking</th><th>Amount</th><th>Method</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS (placeholder) -->
+      <section id="page-reports" class="hidden">
+        <h4>Reports</h4>
+        <div class="card card-rounded p-3">
+          <p class="small-muted">Charts and exports would go here (this demo focuses on CRUD UI).</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ---------- Modals ---------- -->
+  <!-- Driver Modal -->
+  <div class="modal fade" id="driverModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <form id="driverForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Add / Edit Driver</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="driverId">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small">Name</label>
+                <input required id="driverName" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Phone</label>
+                <input required id="driverPhone" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">License Number</label>
+                <input id="driverLicense" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Assigned Vehicle ID</label>
+                <input id="driverVehicleId" class="form-control" placeholder="Vehicle # or leave blank">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Rating</label>
+                <input id="driverRating" class="form-control" type="number" min="0" max="5" step="0.1">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Driver</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-md modal-dialog-scrollable">
+      <div class="modal-content">
+        <form id="userForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Add / Edit User</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="userId">
+            <div class="mb-2">
+              <label class="form-label small">Name</label>
+              <input required id="userName" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Email</label>
+              <input required id="userEmail" type="email" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Phone</label>
+              <input id="userPhone" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Rating</label>
+              <input id="userRating" type="number" min="0" max="5" step="0.1" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Modal -->
+  <div class="modal fade" id="vehicleModal" tabindex="-1">
+    <div class="modal-dialog modal-md modal-dialog-scrollable">
+      <div class="modal-content">
+        <form id="vehicleForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Add / Edit Vehicle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="vehicleId">
+            <div class="mb-2">
+              <label class="form-label small">Plate Number</label>
+              <input required id="vehiclePlate" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Make / Model</label>
+              <input id="vehicleModel" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Capacity</label>
+              <input id="vehicleCapacity" type="number" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Assigned Driver ID</label>
+              <input id="vehicleDriverId" class="form-control" placeholder="Driver # or leave blank">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Vehicle</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <form id="bookingForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Create / Edit Booking</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="bookingId">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small">User</label>
+                <select id="bookingUser" class="form-select"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Driver</label>
+                <select id="bookingDriver" class="form-select"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">From</label>
+                <input required id="bookingFrom" class="form-control" placeholder="Pickup address">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">To</label>
+                <input required id="bookingTo" class="form-control" placeholder="Drop-off address">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Fare</label>
+                <input id="bookingFare" type="number" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Status</label>
+                <select id="bookingStatus" class="form-select">
+                  <option>pending</option>
+                  <option>accepted</option>
+                  <option>ongoing</option>
+                  <option>completed</option>
+                  <option>cancelled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <form id="paymentForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Record Payment</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="paymentId">
+            <div class="mb-2">
+              <label class="form-label small">Booking</label>
+              <select id="paymentBooking" class="form-select"></select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Amount</label>
+              <input id="paymentAmount" type="number" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Method</label>
+              <select id="paymentMethod" class="form-select">
+                <option>card</option>
+                <option>cash</option>
+                <option>mobile money</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Status</label>
+              <select id="paymentStatus" class="form-select">
+                <option>pending</option>
+                <option>paid</option>
+                <option>failed</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm delete modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center p-4">
+          <p id="confirmText" class="mb-3">Are you sure?</p>
+          <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" id="confirmYesBtn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap & scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /******************************************************************
+     * In-memory data stores (demo)
+     ******************************************************************/
+    let users = [];      // {id, name, email, phone, rating}
+    let drivers = [];    // {id, name, phone, license, vehicleId, rating}
+    let vehicles = [];   // {id, plate, model, capacity, driverId}
+    let bookings = [];   // {id, userId, driverId, from, to, fare, status}
+    let payments = [];   // {id, bookingId, amount, method, status}
+
+    let currentUser = null; // {id, name, email, role}
+
+    // Utilities
+    const uid = (prefix='id') => prefix + '_' + Math.random().toString(36).slice(2,9);
+    const el = id => document.getElementById(id);
+
+    // Bootstrap modal instances
+    const driverModalEl = document.getElementById('driverModal');
+    const userModalEl = document.getElementById('userModal');
+    const vehicleModalEl = document.getElementById('vehicleModal');
+    const bookingModalEl = document.getElementById('bookingModal');
+    const paymentModalEl = document.getElementById('paymentModal');
+    const confirmModalEl = document.getElementById('confirmModal');
+
+    const bsDriverModal = new bootstrap.Modal(driverModalEl);
+    const bsUserModal = new bootstrap.Modal(userModalEl);
+    const bsVehicleModal = new bootstrap.Modal(vehicleModalEl);
+    const bsBookingModal = new bootstrap.Modal(bookingModalEl);
+    const bsPaymentModal = new bootstrap.Modal(paymentModalEl);
+    const bsConfirmModal = new bootstrap.Modal(confirmModalEl);
+
+    /******************************************************************
+     * Navigation & Page management
+     ******************************************************************/
+    const pages = [
+      'login','dashboard','booking','drivers','users','vehicles','payments','reports'
+    ];
+    function showPage(pageId) {
+      pages.forEach(p => {
+        const node = el('page-' + p);
+        if(!node) return;
+        if(p === pageId) node.classList.remove('hidden');
+        else node.classList.add('hidden');
+      });
+      // special handling for login visibility
+      if(pageId === 'login') {
+        el('logoutBtn').style.display = 'none';
+        el('currentUserName').textContent = 'Not logged in';
+      }
+      // hide sidebar on small screens
+      document.getElementById('sidebar').classList.remove('open');
+      // refresh lists if necessary
+      if(pageId === 'dashboard') refreshDashboard();
+      if(pageId === 'drivers') renderDriversTable();
+      if(pageId === 'users') renderUsersTable();
+      if(pageId === 'vehicles') renderVehiclesTable();
+      if(pageId === 'booking') renderBookingsTable();
+      if(pageId === 'payments') renderPaymentsTable();
+    }
+
+    // nav clicks
+    document.querySelectorAll('#mainNav .nav-link').forEach(a => {
+      a.addEventListener('click', e => {
+        const page = a.getAttribute('data-page');
+        if(page) showPage(page);
+      });
+    });
+    document.getElementById('navHome').addEventListener('click', () => showPage(currentUser ? 'dashboard' : 'login'));
+    document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    /******************************************************************
+     * Demo seed data
+     ******************************************************************/
+    function seedDemoData() {
+      users = [
+        {id: uid('user'), name: 'Alice Mwangi', email: 'alice@example.com', phone: '0712345678', rating: 4.8},
+        {id: uid('user'), name: 'Bob Otieno', email: 'bob@example.com', phone: '0722345678', rating: 4.2},
+        {id: uid('user'), name: 'Carol Njeri', email: 'carol@example.com', phone: '0701234567', rating: 4.6},
+      ];
+      drivers = [
+        {id: uid('driver'), name: 'John Driver', phone: '0791234567', license: 'KD12345', vehicleId: null, rating: 4.7},
+        {id: uid('driver'), name: 'Peter C', phone: '0799876543', license: 'KD54321', vehicleId: null, rating: 4.3}
+      ];
+      vehicles = [
+        {id: uid('veh'), plate: 'KAX-123A', model: 'Toyota Prius', capacity: 4, driverId: drivers[0].id},
+        {id: uid('veh'), plate: 'KBY-456B', model: 'Nissan Sedan', capacity: 4, driverId: drivers[1].id}
+      ];
+      // link drivers to vehicles
+      drivers[0].vehicleId = vehicles[0].id;
+      drivers[1].vehicleId = vehicles[1].id;
+
+      bookings = [
+        {id: uid('bk'), userId: users[0].id, driverId: drivers[0].id, from: 'Nairobi CBD', to: 'Westlands', fare: 800, status: 'completed'},
+        {id: uid('bk'), userId: users[1].id, driverId: drivers[1].id, from: 'Kilimani', to: 'Langata', fare: 650, status: 'ongoing'},
+      ];
+      payments = [
+        {id: uid('pay'), bookingId: bookings[0].id, amount: 800, method: 'card', status: 'paid'},
+        {id: uid('pay'), bookingId: bookings[1].id, amount: 650, method: 'cash', status: 'pending'},
+      ];
+
+      renderAll();
+      alert('Demo data seeded.');
+    }
+
+    document.getElementById('demoSeedBtn').addEventListener('click', seedDemoData);
+
+    /******************************************************************
+     * Authentication (demo)
+     ******************************************************************/
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = el('loginEmail').value.trim();
+      const pass = el('loginPassword').value.trim(); // unused in demo
+      // demo behaviour: login by matching email in users or drivers
+      const u = users.find(x => x.email === email);
+      if(u) {
+        currentUser = {id: u.id, name: u.name, email: u.email, role: 'user'};
+      } else {
+        const d = drivers.find(x => x.phone === email || x.id === email);
+        if(d) currentUser = {id: d.id, name: d.name, email: d.phone, role: 'driver'};
+      }
+      if(!currentUser) {
+        // quick fallback: accept any email as commuter
+        const id = uid('user');
+        const anon = {id, name: email.split('@')[0] || 'Demo User', email, phone:'', rating:0};
+        users.push(anon);
+        currentUser = {id: id, name: anon.name, email, role: 'user'};
+      }
+      // update UI
+      el('currentUserName').textContent = currentUser.name + ' (' + currentUser.role + ')';
+      el('logoutBtn').style.display = 'inline-block';
+      showPage('dashboard');
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      currentUser = null;
+      el('currentUserName').textContent = 'Not logged in';
+      el('logoutBtn').style.display = 'none';
+      showPage('login');
+    });
+
+    document.getElementById('showRegisterBtn').addEventListener('click', () => {
+      // scroll to register -> show registration card (it's visible)
+      window.scrollTo({top: document.getElementById('registerForm').offsetTop - 20, behavior:'smooth'});
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = el('regName').value.trim();
+      const role = el('regRole').value;
+      const email = el('regEmail').value.trim();
+      const phone = el('regPhone').value.trim();
+      const pass = el('regPassword').value.trim(); // unused
+      const id = uid(role === 'driver' ? 'driver' : 'user');
+
+      if(role === 'driver') {
+        drivers.push({id, name, phone, license:'', vehicleId:null, rating:0});
+      } else {
+        users.push({id, name, email, phone, rating:0});
+      }
+      alert('Registered successfully. You can now login with that email (demo).');
+      // clear form
+      e.target.reset();
+      renderAll();
+    });
+
+    /******************************************************************
+     * Renderers for tables and dashboard
+     ******************************************************************/
+    function renderAll() {
+      renderDriversTable();
+      renderUsersTable();
+      renderVehiclesTable();
+      renderBookingsTable();
+      renderPaymentsTable();
+      refreshDashboard();
+    }
+
+    // Dashboard
+    function refreshDashboard() {
+      el('statUsers').textContent = users.length;
+      el('statDrivers').textContent = drivers.length;
+      el('statBookings').textContent = bookings.filter(b => b.status !== 'completed' && b.status !== 'cancelled').length;
+      el('statPayments').textContent = payments.filter(p => p.status !== 'paid').length;
+      // recent bookings
+      const recentTbody = el('recentBookingsTable').querySelector('tbody');
+      recentTbody.innerHTML = '';
+      const recent = bookings.slice().reverse().slice(0,6);
+      recent.forEach((b, i) => {
+        const user = users.find(u => u.id === b.userId) || {name:'—'};
+        const driver = drivers.find(d => d.id === b.driverId) || {name:'—'};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${user.name}</td><td>${driver.name}</td><td>${b.from}</td><td>${b.to}</td><td>${b.status}</td><td>${b.fare || ''}</td>`;
+        recentTbody.appendChild(tr);
+      });
+    }
+
+    // Drivers table
+    function renderDriversTable() {
+      const tbody = el('driversTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      drivers.forEach((d, idx) => {
+        const vehicle = vehicles.find(v => v.id === d.vehicleId) || {plate:'—', model:''};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${d.name}</td>
+          <td>${d.phone}</td>
+          <td>${d.license || '—'}</td>
+          <td>${vehicle.plate} ${vehicle.model ? '('+vehicle.model+')' : ''}</td>
+          <td>${d.rating || ''}</td>
+          <td class="table-actions">
+            <button class="btn btn-sm btn-outline-primary" data-act="edit" data-id="${d.id}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-act="delete" data-id="${d.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // attach actions
+      tbody.querySelectorAll('button').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+        if(act === 'edit') btn.addEventListener('click', () => openDriverEdit(id));
+        if(act === 'delete') btn.addEventListener('click', () => confirmDelete('driver', id));
+      });
+    }
+
+    // Users table
+    function renderUsersTable() {
+      const tbody = el('usersTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      users.forEach((u, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${u.name}</td>
+          <td>${u.email || ''}</td>
+          <td>${u.phone || ''}</td>
+          <td>${u.rating || ''}</td>
+          <td class="table-actions">
+            <button class="btn btn-sm btn-outline-primary" data-act="edit" data-id="${u.id}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-act="delete" data-id="${u.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+        if(act === 'edit') btn.addEventListener('click', () => openUserEdit(id));
+        if(act === 'delete') btn.addEventListener('click', () => confirmDelete('user', id));
+      });
+    }
+
+    // Vehicles table
+    function renderVehiclesTable() {
+      const tbody = el('vehiclesTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      vehicles.forEach((v, idx) => {
+        const driver = drivers.find(d => d.id === v.driverId) || {name:'—'};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${v.plate}</td>
+          <td>${v.model || ''}</td>
+          <td>${driver.name}</td>
+          <td>${v.capacity || ''}</td>
+          <td class="table-actions">
+            <button class="btn btn-sm btn-outline-primary" data-act="edit" data-id="${v.id}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-act="delete" data-id="${v.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+        if(act === 'edit') btn.addEventListener('click', () => openVehicleEdit(id));
+        if(act === 'delete') btn.addEventListener('click', () => confirmDelete('vehicle', id));
+      });
+    }
+
+    // Bookings table
+    function renderBookingsTable() {
+      const tbody = el('bookingsTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      bookings.forEach((b, idx) => {
+        const user = users.find(u => u.id === b.userId) || {name:'—'};
+        const driver = drivers.find(d => d.id === b.driverId) || {name:'—'};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${user.name}</td>
+          <td>${driver.name}</td>
+          <td>${b.from}</td>
+          <td>${b.to}</td>
+          <td>${b.status}</td>
+          <td>${b.fare || ''}</td>
+          <td class="table-actions">
+            <button class="btn btn-sm btn-outline-primary" data-act="edit" data-id="${b.id}">Edit</button>
+            <button class="btn btn-sm btn-outline-success" data-act="pay" data-id="${b.id}">Pay</button>
+            <button class="btn btn-sm btn-danger" data-act="delete" data-id="${b.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+        if(act === 'edit') btn.addEventListener('click', () => openBookingEdit(id));
+        if(act === 'pay') btn.addEventListener('click', () => openPaymentForBooking(id));
+        if(act === 'delete') btn.addEventListener('click', () => confirmDelete('booking', id));
+      });
+    }
+
+    // Payments table
+    function renderPaymentsTable() {
+      const tbody = el('paymentsTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      payments.forEach((p, idx) => {
+        const booking = bookings.find(b => b.id === p.bookingId) || {from:'—', to:'—'};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${booking.from} → ${booking.to}</td>
+          <td>${p.amount}</td>
+          <td>${p.method}</td>
+          <td>${p.status}</td>
+          <td class="table-actions">
+            <button class="btn btn-sm btn-outline-primary" data-act="edit" data-id="${p.id}">Edit</button>
+            <button class="btn btn-sm btn-danger" data-act="delete" data-id="${p.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+        if(act === 'edit') btn.addEventListener('click', () => openPaymentEdit(id));
+        if(act === 'delete') btn.addEventListener('click', () => confirmDelete('payment', id));
+      });
+    }
+
+    /******************************************************************
+     * CRUD helpers & modals actions
+     ******************************************************************/
+    // Driver modal open
+    document.getElementById('openDriverModal').addEventListener('click', () => {
+      el('driverForm').reset();
+      el('driverId').value = '';
+      bsDriverModal.show();
+    });
+    function openDriverEdit(id) {
+      const d = drivers.find(x => x.id === id);
+      if(!d) return;
+      el('driverId').value = d.id;
+      el('driverName').value = d.name;
+      el('driverPhone').value = d.phone;
+      el('driverLicense').value = d.license;
+      el('driverVehicleId').value = d.vehicleId || '';
+      el('driverRating').value = d.rating || '';
+      bsDriverModal.show();
+    }
+    document.getElementById('driverForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = el('driverId').value;
+      const payload = {
+        name: el('driverName').value.trim(),
+        phone: el('driverPhone').value.trim(),
+        license: el('driverLicense').value.trim(),
+        vehicleId: el('driverVehicleId').value.trim() || null,
+        rating: Number(el('driverRating').value) || 0
+      };
+      if(id) {
+        const idx = drivers.findIndex(x => x.id === id);
+        if(idx >=0) drivers[idx] = {...drivers[idx], ...payload};
+      } else {
+        drivers.push({id: uid('driver'), ...payload});
+      }
+      bsDriverModal.hide();
+      renderDriversTable();
+      renderVehiclesTable();
+      refreshDashboard();
+    });
+
+    // User modal
+    document.getElementById('openUserModal').addEventListener('click', () => {
+      el('userForm').reset();
+      el('userId').value = '';
+      bsUserModal.show();
+    });
+    function openUserEdit(id) {
+      const u = users.find(x => x.id === id);
+      if(!u) return;
+      el('userId').value = u.id;
+      el('userName').value = u.name;
+      el('userEmail').value = u.email || '';
+      el('userPhone').value = u.phone || '';
+      el('userRating').value = u.rating || '';
+      bsUserModal.show();
+    }
+    document.getElementById('userForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = el('userId').value;
+      const payload = {
+        name: el('userName').value.trim(),
+        email: el('userEmail').value.trim(),
+        phone: el('userPhone').value.trim(),
+        rating: Number(el('userRating').value) || 0
+      };
+      if(id) {
+        const idx = users.findIndex(x => x.id === id);
+        if(idx >=0) users[idx] = {...users[idx], ...payload};
+      } else {
+        users.push({id: uid('user'), ...payload});
+      }
+      bsUserModal.hide();
+      renderUsersTable();
+      refreshDashboard();
+    });
+
+    // Vehicle modal
+    document.getElementById('openVehicleModal').addEventListener('click', () => {
+      el('vehicleForm').reset();
+      el('vehicleId').value = '';
+      bsVehicleModal.show();
+    });
+    function openVehicleEdit(id) {
+      const v = vehicles.find(x => x.id === id);
+      if(!v) return;
+      el('vehicleId').value = v.id;
+      el('vehiclePlate').value = v.plate;
+      el('vehicleModel').value = v.model || '';
+      el('vehicleCapacity').value = v.capacity || '';
+      el('vehicleDriverId').value = v.driverId || '';
+      bsVehicleModal.show();
+    }
+    document.getElementById('vehicleForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = el('vehicleId').value;
+      const payload = {
+        plate: el('vehiclePlate').value.trim(),
+        model: el('vehicleModel').value.trim(),
+        capacity: Number(el('vehicleCapacity').value) || null,
+        driverId: el('vehicleDriverId').value.trim() || null
+      };
+      if(id) {
+        const idx = vehicles.findIndex(x => x.id === id);
+        if(idx >=0) vehicles[idx] = {...vehicles[idx], ...payload};
+      } else {
+        vehicles.push({id: uid('veh'), ...payload});
+      }
+      // update drivers' vehicle references if assigned
+      if(payload.driverId) {
+        const drv = drivers.find(d => d.id === payload.driverId);
+        if(drv) drv.vehicleId = payload.id || vehicles[vehicles.length-1].id;
+      }
+      bsVehicleModal.hide();
+      renderVehiclesTable();
+      renderDriversTable();
+      refreshDashboard();
+    });
+
+    // Booking modal
+    document.getElementById('openCreateBooking').addEventListener('click', () => {
+      el('bookingForm').reset();
+      el('bookingId').value = '';
+      populateBookingSelects();
+      bsBookingModal.show();
+    });
+    function openBookingEdit(id) {
+      const b = bookings.find(x => x.id === id);
+      if(!b) return;
+      el('bookingId').value = b.id;
+      populateBookingSelects();
+      el('bookingUser').value = b.userId;
+      el('bookingDriver').value = b.driverId;
+      el('bookingFrom').value = b.from;
+      el('bookingTo').value = b.to;
+      el('bookingFare').value = b.fare || '';
+      el('bookingStatus').value = b.status;
+      bsBookingModal.show();
+    }
+    document.getElementById('bookingForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = el('bookingId').value;
+      const payload = {
+        userId: el('bookingUser').value,
+        driverId: el('bookingDriver').value,
+        from: el('bookingFrom').value.trim(),
+        to: el('bookingTo').value.trim(),
+        fare: Number(el('bookingFare').value) || 0,
+        status: el('bookingStatus').value
+      };
+      if(id) {
+        const idx = bookings.findIndex(x => x.id === id);
+        if(idx >=0) bookings[idx] = {...bookings[idx], ...payload};
+      } else {
+        bookings.push({id: uid('bk'), ...payload});
+      }
+      bsBookingModal.hide();
+      renderBookingsTable();
+      refreshDashboard();
+    });
+
+    function populateBookingSelects() {
+      const userSel = el('bookingUser');
+      const driverSel = el('bookingDriver');
+      userSel.innerHTML = '';
+      driverSel.innerHTML = '';
+      users.forEach(u => {
+        const opt = document.createElement('option'); opt.value = u.id; opt.textContent = u.name;
+        userSel.appendChild(opt);
+      });
+      drivers.forEach(d => {
+        const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.name;
+        driverSel.appendChild(opt);
+      });
+    }
+
+    // Payment modal
+    function openPaymentForBooking(bookingId) {
+      el('paymentForm').reset();
+      el('paymentId').value = '';
+      const sel = el('paymentBooking');
+      sel.innerHTML = '';
+      bookings.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        const user = users.find(u => u.id === b.userId) || {name:'—'};
+        opt.textContent = `${user.name}: ${b.from}→${b.to} (${b.fare || ''})`;
+        if(b.id === bookingId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      el('paymentAmount').value = bookings.find(b => b.id === bookingId)?.fare || '';
+      bsPaymentModal.show();
+    }
+    function openPaymentEdit(id) {
+      const p = payments.find(x => x.id === id);
+      if(!p) return;
+      el('paymentId').value = p.id;
+      const sel = el('paymentBooking');
+      sel.innerHTML = '';
+      bookings.forEach(b => {
+        const opt = document.createElement('option'); opt.value = b.id;
+        opt.textContent = `${b.from}→${b.to}`;
+        if(b.id === p.bookingId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      el('paymentAmount').value = p.amount;
+      el('paymentMethod').value = p.method;
+      el('paymentStatus').value = p.status;
+      bsPaymentModal.show();
+    }
+    document.getElementById('paymentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = el('paymentId').value;
+      const payload = {
+        bookingId: el('paymentBooking').value,
+        amount: Number(el('paymentAmount').value) || 0,
+        method: el('paymentMethod').value,
+        status: el('paymentStatus').value
+      };
+      if(id) {
+        const idx = payments.findIndex(x => x.id === id);
+        if(idx >=0) payments[idx] = {...payments[idx], ...payload};
+      } else {
+        payments.push({id: uid('pay'), ...payload});
+      }
+      bsPaymentModal.hide();
+      renderPaymentsTable();
+      refreshDashboard();
+    });
+
+    /******************************************************************
+     * Delete confirmation & handlers
+     ******************************************************************/
+    let pendingDelete = null;
+    function confirmDelete(type, id) {
+      pendingDelete = {type, id};
+      el('confirmText').textContent = `Delete this ${type}? This action cannot be undone.`;
+      bsConfirmModal.show();
+      el('confirmYesBtn').onclick = () => {
+        doDelete(pendingDelete.type, pendingDelete.id);
+        bsConfirmModal.hide();
+      };
+    }
+
+    function doDelete(type, id) {
+      if(type === 'driver') {
+        drivers = drivers.filter(x => x.id !== id);
+        // unassign vehicles
+        vehicles.forEach(v => { if(v.driverId === id) v.driverId = null; });
+      } else if(type === 'user') {
+        users = users.filter(x => x.id !== id);
+        bookings = bookings.filter(b => b.userId !== id);
+      } else if(type === 'vehicle') {
+        vehicles = vehicles.filter(x => x.id !== id);
+        drivers.forEach(d => { if(d.vehicleId === id) d.vehicleId = null; });
+      } else if(type === 'booking') {
+        bookings = bookings.filter(x => x.id !== id);
+        payments = payments.filter(p => p.bookingId !== id);
+      } else if(type === 'payment') {
+        payments = payments.filter(x => x.id !== id);
+      }
+      renderAll();
+    }
+
+    /******************************************************************
+     * Open booking/payment via table actions
+     ******************************************************************/
+    function openPaymentForBooking(bookingId) {
+      el('paymentForm').reset();
+      el('paymentId').value = '';
+      const sel = el('paymentBooking');
+      sel.innerHTML = '';
+      bookings.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        const user = users.find(u => u.id === b.userId) || {name:'—'};
+        opt.textContent = `${user.name}: ${b.from} → ${b.to} (${b.fare || ''})`;
+        if(b.id === bookingId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      el('paymentAmount').value = bookings.find(b => b.id === bookingId)?.fare || '';
+      bsPaymentModal.show();
+    }
+
+    /******************************************************************
+     * Initialize default view
+     ******************************************************************/
+    // show login by default
+    showPage('login');
+
+    // quick attach for refresh dashboard
+    document.getElementById('refreshDashboardBtn').addEventListener('click', refreshDashboard);
+
+    // small UX: switch to dashboard when logged in automatically if demo data seeded
+    // (not required — only convenience)
+    // initial demo seed optional
+    //seedDemoData();
+
+  </script>
+</body>
+</html>

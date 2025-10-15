@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uber Booking Information System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      transition: 0.3s;
+    }
+    .sidebar h2 {
+      text-align: center;
+      padding: 20px 0;
+      background: #ffb400;
+      color: black;
+      font-weight: bold;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: 0.3s;
+      border-bottom: 1px solid #222;
+    }
+    .sidebar ul li:hover {
+      background-color: #ffb400;
+      color: black;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+    .header {
+      background: #111;
+      color: white;
+      padding: 15px;
+      font-size: 22px;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .dashboard-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .dashboard-card h3 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .dashboard-card p {
+      color: #666;
+    }
+
+    /* Popup Window Styling */
+    .btn {
+      display: inline-block;
+      background: #111;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #ffb400;
+      color: black;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+
+  <script>
+    function openWindow(pageTitle, formHTML) {
+      let popup = window.open("", pageTitle, "width=600,height=600,left=400,top=100");
+      popup.document.write(`
+        <html>
+          <head>
+            <title>${pageTitle}</title>
+            <style>
+              body { font-family: Arial; padding: 20px; background: #f9f9f9; }
+              h2 { color: #333; }
+              form { display: flex; flex-direction: column; gap: 10px; }
+              input, select, button {
+                padding: 10px;
+                font-size: 15px;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+              }
+              button {
+                background: #111;
+                color: white;
+                cursor: pointer;
+              }
+              button:hover {
+                background: #ffb400;
+                color: black;
+              }
+            </style>
+          </head>
+          <body>
+            ${formHTML}
+          </body>
+        </html>
+      `);
+    }
+
+    function openUser() {
+      openWindow("User Form", `
+        <h2>User Details</h2>
+        <form>
+          <input type='text' placeholder='Full Name' required>
+          <input type='email' placeholder='Email' required>
+          <input type='text' placeholder='Phone Number' required>
+          <input type='number' placeholder='Rating (1-5)' required>
+          <button>Submit</button>
+        </form>
+      `);
+    }
+
+    function openDriver() {
+      openWindow("Driver Form", `
+        <h2>Driver Details</h2>
+        <form>
+          <input type='text' placeholder='Driver Name' required>
+          <input type='text' placeholder='License Number' required>
+          <input type='text' placeholder='Phone Number' required>
+          <input type='text' placeholder='Experience (in years)' required>
+          <button>Submit</button>
+        </form>
+      `);
+    }
+
+    function openVehicle() {
+      openWindow("Vehicle Form", `
+        <h2>Vehicle Details</h2>
+        <form>
+          <input type='text' placeholder='Vehicle Model' required>
+          <input type='text' placeholder='Registration Number' required>
+          <input type='text' placeholder='Vehicle Type' required>
+          <input type='text' placeholder='Capacity' required>
+          <button>Submit</button>
+        </form>
+      `);
+    }
+
+    function openBooking() {
+      openWindow("Booking Form", `
+        <h2>Booking Details</h2>
+        <form>
+          <input type='text' placeholder='User Name' required>
+          <input type='text' placeholder='Driver Name' required>
+          <input type='text' placeholder='Pickup Location' required>
+          <input type='text' placeholder='Drop-off Location' required>
+          <input type='datetime-local' required>
+          <button>Submit</button>
+        </form>
+      `);
+    }
+
+    function openPayment() {
+      openWindow("Payment Form", `
+        <h2>Payment Details</h2>
+        <form>
+          <input type='text' placeholder='Booking ID' required>
+          <input type='text' placeholder='Payment Method (Cash/Card)' required>
+          <input type='number' placeholder='Amount' required>
+          <input type='text' placeholder='Payment Status' required>
+          <button>Submit</button>
+        </form>
+      `);
+    }
+  </script>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Uber System</h2>
+    <ul>
+      <li onclick="openUser()">👤 User</li>
+      <li onclick="openDriver()">🚗 Driver</li>
+      <li onclick="openVehicle()">🚙 Vehicle</li>
+      <li onclick="openBooking()">📅 Booking</li>
+      <li onclick="openPayment()">💳 Payment</li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <div class="header">Dashboard</div>
+
+    <div class="dashboard-card">
+      <h3>System Overview</h3>
+      <p>Welcome to the Uber Booking Information System Dashboard.  
+      Click a module from the sidebar to open its form in a popup window.</p>
+      <a href="#" class="btn" onclick="openUser()">Open User Form</a>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>Quick Access</h3>
+      <p>Use the sidebar or quick buttons below to manage details:</p>
+      <a href="#" class="btn" onclick="openDriver()">Driver</a>
+      <a href="#" class="btn" onclick="openVehicle()">Vehicle</a>
+      <a href="#" class="btn" onclick="openBooking()">Booking</a>
+      <a href="#" class="btn" onclick="openPayment()">Payment</a>
+    </div>
+
+    <footer>&copy; 2025 Uber Booking Information System | Dashboard UI Only</footer>
+  </div>
+</body>
+</html>

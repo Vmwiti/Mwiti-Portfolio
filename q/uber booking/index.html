@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Uber Booking System</title>
+  <link rel="stylesheet" href="Css/style.css"/>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Book Your Ride</h1>
+
+    <div class="booking-form">
+      <label for="pickup">Pickup Location:</label>
+      <input type="text" id="pickup" placeholder="Enter pickup point" />
+
+      <label for="drop">Drop Location:</label>
+      <input type="text" id="drop" placeholder="Enter drop point" />
+
+      <label for="datetime">Date & Time:</label>
+      <input type="datetime-local" id="datetime" />
+
+      <button onclick="bookRide()">Find Rides</button>
+    </div>
+
+    <div class="map-section">
+      <img src="images/map.jpg" alt="Map" class="map-image" />
+    </div>
+
+    <div class="ride-options" id="rideOptions">
+      <!-- Ride options will appear here -->
+    </div>
+  </div>
+
+  <script src="Js/script.js"></script>
+</body>
+</html>

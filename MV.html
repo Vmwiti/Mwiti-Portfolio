@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Uber Booking Information System - Frontend</title>
+  <style>
+    :root{
+      --accent:#1fb6ff;
+      --card-bg: rgba(255,255,255,0.95);
+      --muted:#6b7280;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    html,body{height:100%;margin:0}
+    body{
+      background-image: url('https://images.unsplash.com/photo-1505577058444-a3dab3a5becc?auto=format&fit=crop&w=1950&q=80');
+      background-size:cover;background-position:center;
+      display:flex;align-items:center;justify-content:center;padding:24px;
+    }
+    .app{width:100%;max-width:1100px;background:rgba(255,255,255,0.25);backdrop-filter:blur(8px);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.5);overflow:hidden;display:grid;grid-template-columns:360px 1fr;min-height:600px}
+    .sidebar{padding:28px;background:rgba(255,255,255,0.05)}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{width:46px;height:46px;border-radius:10px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)}
+    h1{margin:0;font-size:20px}
+    .card{background:var(--card-bg);border-radius:12px;padding:14px;margin-top:18px}
+    label{font-size:13px}
+    input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);margin-top:6px}
+    button{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:6px;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(0,0,0,0.1);color:black}
+    .main{padding:28px}
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-top:18px}
+    .booking{padding:10px;border-bottom:1px solid rgba(0,0,0,0.05)}
+    .stars{display:flex;gap:4px;font-size:20px;cursor:pointer}
+    @media(max-width:900px){.app{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">UB</div>
+      <h1>Uber Booking</h1>
+    </div>
+    <div id="auth-area" class="card">
+      <h3>Login</h3>
+      <label>Email</label>
+      <input id="email" type="email" value="rider@example.com">
+      <label>Password</label>
+      <input id="password" type="password" value="pass123">
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button id="btn-login">Login</button>
+        <button class="ghost" id="btn-create">Create</button>
+      </div>
+    </div>
+    <div id="profile-area" style="display:none">
+      <div class="card">
+        <h4 id="user-email"></h4>
+        <button id="btn-logout" class="ghost">Logout</button>
+        <button id="btn-download-report">Download Report</button>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <h2 id="greet">Welcome</h2>
+    <div class="grid">
+      <section>
+        <div class="card">
+          <h3>Book a Ride</h3>
+          <label>Pickup</label>
+          <input id="pickup">
+          <label>Dropoff</label>
+          <input id="dropoff">
+          <label>Ride Type</label>
+          <select id="ride-type"><option>Economy</option><option>Premium</option></select>
+          <label>Passengers</label>
+          <input id="passengers" type="number" value="1">
+          <button id="btn-book" style="margin-top:10px">Book Ride</button>
+          <button id="btn-cancel-all" class="ghost">Cancel All</button>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Bookings</h3>
+          <div id="bookings">No bookings yet</div>
+        </div>
+      </section>
+      <aside>
+        <div class="card">
+          <h3>Payment</h3>
+          <button id="btn-pay">Pay Latest</button>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Rate & Feedback</h3>
+          <div class="stars" id="stars"></div>
+          <textarea id="feedback" rows="3" placeholder="Feedback..."></textarea>
+          <button id="btn-submit-rating">Submit Rating</button>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Recent Ratings</h3>
+          <div id="ratings">No ratings</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+<script>
+const demoCred={email:'rider@example.com',password:'pass123'};
+function $(id){return document.getElementById(id)}
+function getUser(){return JSON.parse(localStorage.getItem('user')||'null')}
+function setUser(u){localStorage.setItem('user',JSON.stringify(u))}
+function logout(){localStorage.removeItem('user');render()}
+function getBookings(){return JSON.parse(localStorage.getItem('bookings')||'[]')}
+function saveBookings(b){localStorage.setItem('bookings',JSON.stringify(b))}
+function getRatings(){return JSON.parse(localStorage.getItem('ratings')||'[]')}
+function saveRatings(r){localStorage.setItem('ratings',JSON.stringify(r))}
+
+$('btn-login').onclick=()=>{const e=$('email').value,p=$('password').value;if(e===demoCred.email&&p===demoCred.password){setUser({email:e});render()}};
+$('btn-create').onclick=()=>{const e=$('email').value;if(e){setUser({email:e});render()}};
+$('btn-logout').onclick=()=>logout();
+
+$('btn-book').onclick=()=>{const u=getUser();if(!u)return alert('Login');const b=getBookings();
+  const ride={id:Date.now(),pickup:$('pickup').value,dropoff:$('dropoff').value,rideType:$('ride-type').value,passengers:$('passengers').value,status:'Booked',paid:false,car:`Car-${Math.floor(Math.random()*900+100)}`,plate:`KDA ${Math.floor(Math.random()*9000+1000)}`,driver:`Driver ${String.fromCharCode(65+Math.floor(Math.random()*26))}`};
+  b.push(ride);saveBookings(b);renderBookings()};
+$('btn-cancel-all').onclick=()=>{saveBookings([]);renderBookings()};
+$('btn-pay').onclick=()=>{let b=getBookings();let last=b.find(x=>!x.paid&&x.status==='Booked');if(last){last.paid=true;saveBookings(b);renderBookings();alert('Payment done for '+last.pickup+' → '+last.dropoff)}};
+
+function renderBookings(){const c=$('bookings');const b=getBookings();if(b.length===0){c.innerHTML='No bookings yet';return}c.innerHTML='';b.slice().reverse().forEach(x=>{const d=document.createElement('div');d.className='booking';d.innerHTML=`<div><b>${x.pickup}→${x.dropoff}</b><br>${x.rideType}, ${x.passengers} pax<br>Car:${x.car}, Plate:${x.plate}<br>Driver:${x.driver}</div><div>Status:${x.status}, Paid:${x.paid}</div>`;c.appendChild(d)})}
+
+// Ratings
+let stars=0;const starsDiv=$('stars');for(let i=1;i<=5;i++){const s=document.createElement('span');s.textContent='☆';s.dataset.v=i;s.onclick=()=>{stars=i;updateStars()};starsDiv.appendChild(s)}
+function updateStars(){starsDiv.querySelectorAll('span').forEach(s=>{s.textContent=Number(s.dataset.v)<=stars?'★':'☆'})}
+$('btn-submit-rating').onclick=()=>{const u=getUser();if(!u)return alert('Login');if(!stars)return alert('Select stars');const list=getRatings();list.push({stars,feedback:$('feedback').value,time:new Date().toLocaleString()});saveRatings(list);$('feedback').value='';stars=0;updateStars();renderRatings()};
+function renderRatings(){const r=getRatings();const c=$('ratings');if(r.length===0){c.innerHTML='No ratings';return}c.innerHTML='';r.slice().reverse().forEach(x=>{const d=document.createElement('div');d.innerHTML=`${x.stars}★ - ${x.feedback} <br><small>${x.time}</small>`;c.appendChild(d)})}
+
+$('btn-download-report').onclick=()=>{const b=getBookings();if(b.length===0)return alert('No bookings');let csv='Pickup,Dropoff,Ride,Passengers,Car,Plate,Driver,Status,Paid\n';b.forEach(x=>{csv+=`${x.pickup},${x.dropoff},${x.rideType},${x.passengers},${x.car},${x.plate},${x.driver},${x.status},${x.paid}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='report.csv';a.click()};
+
+function render(){const u=getUser();if(u){$('auth-area').style.display='none';$('profile-area').style.display='block';$('user-email').textContent=u.email;renderBookings();renderRatings()}else{$('auth-area').style.display='block';$('profile-area').style.display='none';$('bookings').innerHTML='';$('ratings').innerHTML='No ratings'}}
+render();
+</script>
+</body>
+</html>

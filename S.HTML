@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uber Booking Information System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f6fa;
+      color: #333;
+    }
+    header {
+      background: #1e90ff;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+      margin-top: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 30px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    .card h3 {
+      margin: 0;
+      color: #1e90ff;
+      font-size: 20px;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      margin-top: 40px;
+      background: #1e90ff;
+      color: white;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>Uber Booking Information System Dashboard</header>
+
+  <div class="container">
+    <h2>Select a Module</h2>
+    <div class="dashboard">
+      <div class="card" onclick="openWindow('user')"><h3>User</h3></div>
+      <div class="card" onclick="openWindow('driver')"><h3>Driver</h3></div>
+      <div class="card" onclick="openWindow('vehicle')"><h3>Vehicle</h3></div>
+      <div class="card" onclick="openWindow('booking')"><h3>Booking</h3></div>
+      <div class="card" onclick="openWindow('payment')"><h3>Payment</h3></div>
+    </div>
+  </div>
+
+  <footer>© 2025 Uber Booking Information System</footer>
+
+  <script>
+    function openWindow(module) {
+      let html = "";
+      if (module === "user") {
+        html = `
+          <h2>User Information</h2>
+          <form>
+            <label>Name:</label><input type='text'><br><br>
+            <label>Email:</label><input type='email'><br><br>
+            <label>Phone:</label><input type='text'><br><br>
+            <label>Rating:</label><input type='number' min='1' max='5'><br><br>
+            <button type='submit'>Save</button>
+          </form>`;
+      } else if (module === "driver") {
+        html = `
+          <h2>Driver Details</h2>
+          <form>
+            <label>Name:</label><input type='text'><br><br>
+            <label>License No:</label><input type='text'><br><br>
+            <label>Phone:</label><input type='text'><br><br>
+            <label>Rating:</label><input type='number' min='1' max='5'><br><br>
+            <button type='submit'>Save</button>
+          </form>`;
+      } else if (module === "vehicle") {
+        html = `
+          <h2>Vehicle Information</h2>
+          <form>
+            <label>Vehicle No:</label><input type='text'><br><br>
+            <label>Model:</label><input type='text'><br><br>
+            <label>Type:</label><input type='text'><br><br>
+            <label>Capacity:</label><input type='number'><br><br>
+            <button type='submit'>Save</button>
+          </form>`;
+      } else if (module === "booking") {
+        html = `
+          <h2>Booking Details</h2>
+          <form>
+            <label>User ID:</label><input type='text'><br><br>
+            <label>Driver ID:</label><input type='text'><br><br>
+            <label>Pickup:</label><input type='text'><br><br>
+            <label>Destination:</label><input type='text'><br><br>
+            <label>Date:</label><input type='date'><br><br>
+            <button type='submit'>Save</button>
+          </form>`;
+      } else if (module === "payment") {
+        html = `
+          <h2>Payment Details</h2>
+          <form>
+            <label>Booking ID:</label><input type='text'><br><br>
+            <label>Amount:</label><input type='number'><br><br>
+            <label>Method:</label><input type='text'><br><br>
+            <label>Status:</label><input type='text'><br><br>
+            <button type='submit'>Save</button>
+          </form>`;
+      }
+
+      const popup = window.open("", module, "width=800,height=600");
+      popup.document.write(`
+        <html>
+          <head>
+            <title>${module.toUpperCase()} Window</title>
+            <style>
+              body { font-family: Arial; background:#f4f6f8; padding:20px; }
+              h2 { color:#1e90ff; }
+              input, button { padding:8px; width:90%; margin-top:5px; }
+              button { background:#1e90ff; color:white; border:none; cursor:pointer; border-radius:5px; }
+              button:hover { background:#0b6bc1; }
+            </style>
+          </head>
+          <body>${html}</body>
+        </html>
+      `);
+      popup.document.close();
+    }
+  </script>
+</body>
+</html>
